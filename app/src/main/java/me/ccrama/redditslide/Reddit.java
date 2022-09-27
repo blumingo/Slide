@@ -512,8 +512,10 @@ public class Reddit extends MultiDexApplication implements Application.ActivityL
         if (manager != null) {
             for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(
                     Integer.MAX_VALUE)) {
-                if (NotificationPiggyback.class.getName().equals(service.service.getClassName())) {
-                    return true;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    if (NotificationPiggyback.class.getName().equals(service.service.getClassName())) {
+                        return true;
+                    }
                 }
             }
         }

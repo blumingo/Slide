@@ -52,12 +52,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.Locale;
+import java.util.Objects;
 
 import me.ccrama.redditslide.Activities.MediaView;
 import me.ccrama.redditslide.Activities.Website;
@@ -77,7 +76,7 @@ public class GifUtils {
      * Create a notification that opens a newly-saved GIF
      *
      * @param f File referencing the GIF
-     * @param c
+     * @param c Context
      */
     public static void doNotifGif(File f, Activity c) {
         MediaScannerConnection.scanFile(c,
@@ -315,8 +314,8 @@ public class GifUtils {
         private TextView size;
 
         public AsyncLoadGif(@NonNull Activity c, @NonNull ExoVideoView video,
-                @Nullable ProgressBar p, @Nullable View placeholder, @Nullable Runnable gifSave,
-                boolean closeIfNull, boolean autostart, String subreddit) {
+                            @Nullable ProgressBar p, @Nullable View placeholder, @Nullable Runnable gifSave,
+                            boolean closeIfNull, boolean autostart, String subreddit) {
             this.c = c;
             this.subreddit = subreddit;
             this.video = video;
@@ -328,8 +327,8 @@ public class GifUtils {
         }
 
         public AsyncLoadGif(@NonNull Activity c, @NonNull ExoVideoView video,
-                @Nullable ProgressBar p, @Nullable View placeholder, @Nullable Runnable gifSave,
-                boolean closeIfNull, boolean autostart, TextView size, String subreddit, String submissionTitle) {
+                            @Nullable ProgressBar p, @Nullable View placeholder, @Nullable Runnable gifSave,
+                            boolean closeIfNull, boolean autostart, TextView size, String subreddit, String submissionTitle) {
             this.c = c;
             this.video = video;
             this.subreddit = subreddit;
@@ -347,8 +346,8 @@ public class GifUtils {
         }
 
         public AsyncLoadGif(@NonNull Activity c, @NonNull ExoVideoView video,
-                @Nullable ProgressBar p, @Nullable View placeholder, boolean closeIfNull,
-                boolean autostart, String subreddit) {
+                            @Nullable ProgressBar p, @Nullable View placeholder, boolean closeIfNull,
+                            boolean autostart, String subreddit) {
             this.c = c;
             this.video = video;
             this.subreddit = subreddit;
@@ -434,32 +433,39 @@ public class GifUtils {
             return VideoType.OTHER;
         }
 
-      /**
-       * Get an API response for a given host and gfy name
-       *
-       * @param host the host to send the req to
-       * @param name the name of the gfy
-       * @return the result
-       */
-        JsonObject getApiResponse(String host, String name){
-          String gfycatUrl = "https://api." + host + ".com/v1/gfycats" + name;
-          return HttpUtil.getJsonObject(client, gson, gfycatUrl);
+        /**
+         * Get an API response for a given host and gfy name
+         *
+         * @param host the host to send the req to
+         * @param name the name of the gfy
+         * @return the result
+         */
+        JsonObject getApiResponse(String host, String name) {
+            String url;
+            if (Objects.equals(host, "redgifs")) {
+                url = "https://api." + host + ".com/v2/gifs" + name;
+            } else {
+                url = "https://api." + host + ".com/v1/gfycats" + name;
+            }
+            return HttpUtil.getJsonObject(client, gson, url);
         }
 
-       /**
-        * Get the correct mp4/mobile url from a given result JsonObject
-        *
-        * @param result the result to check
-        * @return the video url
-        */
-        String getUrlFromApi(JsonObject result){
-          if (!SettingValues.hqgif && result.getAsJsonObject("gfyItem").has("mobileUrl")) {
-            return result.getAsJsonObject("gfyItem").get("mobileUrl").getAsString();
-          } else {
-            return result.getAsJsonObject("gfyItem").get("mp4Url").getAsString();
-          }
+        /**
+         * Get the correct mp4/mobile url from a given result JsonObject
+         *
+         * @param result the result to check
+         * @return the video url
+         */
+        String getUrlFromApi(JsonObject result) {
+            if (!SettingValues.hqgif && result.has("gfyItem") && result.getAsJsonObject("gfyItem").has("mobileUrl")) {
+                return result.getAsJsonObject("gfyItem").get("mobileUrl").getAsString();
+            } else if (result.has("urls")) {
+                JsonObject urls = result.getAsJsonObject("urls");
+                return urls.getAsJsonPrimitive("sd").getAsString();
+            } else {
+                return result.getAsJsonObject("gfyItem").get("mp4Url").getAsString();
+            }
         }
-
 
         OkHttpClient client = Reddit.client;
 
@@ -468,10 +474,9 @@ public class GifUtils {
          *
          * @param name    Name of the gfycat gif
          * @param fullUrl full URL to the gfycat
-         * @param gson
          * @return Correct URL
          */
-        Uri loadGfycat(String name, String fullUrl, Gson gson) {
+        Uri loadGfycat(String name, String fullUrl) {
             showProgressBar(c, progressBar, true);
             String host = "gfycat";
             if (fullUrl.contains("redgifs")) {
@@ -485,24 +490,11 @@ public class GifUtils {
             if (result == null || result.get("gfyItem") == null || result.getAsJsonObject("gfyItem")
                     .get("mp4Url")
                     .isJsonNull()) {
-                //If the result null, the gfycat link may be redirecting to gifdeliverynetwork which is powered by redgifs.
-                //Try getting the redirected url from gfycat and check if redirected url is gifdeliverynetwork and if it is,
-                // we fetch the actual .mp4/.webm url from the redgifs api
-                if (result == null) {
-                    try {
-                        URL newUrl = new URL(fullUrl);
-                        HttpURLConnection ucon = (HttpURLConnection) newUrl.openConnection();
-                        ucon.setInstanceFollowRedirects(false);
-                        String secondURL = new URL(ucon.getHeaderField("location")).toString();
-                        if (secondURL.contains("gifdeliverynetwork")){
-                            return Uri.parse(getUrlFromApi(getApiResponse("redgifs", name.toLowerCase())));
-                        }
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                if (result.get("gif") != null) {
+                    JsonObject gif = result.getAsJsonObject("gif");
+                    return Uri.parse(getUrlFromApi(gif));
                 }
-
                 onError();
                 if (closeIfNull) {
                     c.runOnUiThread(new Runnable() {
@@ -586,7 +578,6 @@ public class GifUtils {
         @Override
         protected Uri doInBackground(String... sub) {
             MediaView.didLoadGif = false;
-            Gson gson = new Gson();
             final String url = formatUrl(sub[0]);
             VideoType videoType = getVideoType(url);
             LogUtil.v(url + ", VideoType: " + videoType);
@@ -625,14 +616,8 @@ public class GifUtils {
                 case GFYCAT:
                     String name = url.substring(url.lastIndexOf("/"));
                     String gfycatUrl = "https://api.gfycat.com/v1/gfycats" + name;
-
-                    //Check if resolved gfycat link is gifdeliverynetwork. If it is gifdeliverynetwork, open the link externally
                     try {
-                        Uri uri = loadGfycat(name, url, gson);
-                        if(uri.toString().contains("gifdeliverynetwork")){
-                            openWebsite(url);
-                            return null;
-                        } else return uri;
+                        return loadGfycat(name, url);
                     } catch (Exception e) {
                         LogUtil.e(e, "Error loading gfycat video url = ["
                                 + url
@@ -871,7 +856,7 @@ public class GifUtils {
          * @param c        Activity
          */
         static void getRemoteFileSize(String url, OkHttpClient client,
-                final TextView sizeText, Activity c) {
+                                      final TextView sizeText, Activity c) {
             if (!url.contains("v.redd.it")) {
                 Request request = new Request.Builder().url(url).head().build();
                 Response response;
@@ -949,7 +934,7 @@ public class GifUtils {
             }
         }
 
-        private void openWebsite(String url){
+        private void openWebsite(String url) {
             if (closeIfNull) {
                 Intent web = new Intent(c, Website.class);
                 web.putExtra(LinkUtil.EXTRA_URL, url);
@@ -970,7 +955,7 @@ public class GifUtils {
      * @param isIndeterminate True to show an indeterminate ProgressBar, false otherwise
      */
     private static void showProgressBar(final Activity activity, final ProgressBar progressBar,
-            final boolean isIndeterminate) {
+                                        final boolean isIndeterminate) {
         if (activity == null) return;
         if (Looper.myLooper() == Looper.getMainLooper()) {
             // Current Thread is Main Thread.
@@ -1091,4 +1076,5 @@ public class GifUtils {
             }
         }
     }
+
 }

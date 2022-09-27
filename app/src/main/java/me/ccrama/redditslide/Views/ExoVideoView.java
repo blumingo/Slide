@@ -43,7 +43,7 @@ import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.util.BlendModeUtil;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.NetworkUtil;
-
+import okhttp3.internal.Version;
 /**
  * View containing an ExoPlayer
  */
@@ -177,7 +177,8 @@ public class ExoVideoView extends RelativeLayout {
         // Create the data sources used to retrieve and cache the video
         DataSource.Factory downloader =
                 new OkHttpDataSource.Factory(Reddit.client)
-                        .setUserAgent(context.getString(R.string.app_name));
+                    .setUserAgent(Version.userAgent());
+
         DataSource.Factory cacheDataSourceFactory =
                 new CacheDataSource.Factory()
                         .setCache(Reddit.videoCache)
