@@ -194,12 +194,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                         finish();
                     }
                     if (position == firstPage && !popup) {
-                        if (((CommentsScreen.CommentsScreenPagerAdapter) Objects.requireNonNull(pager.getAdapter())).blankPage != null) {
-                            ((CommentsScreen.CommentsScreenPagerAdapter) pager.getAdapter()).blankPage.doOffset(
-                                    positionOffset);
-                        }
                         pager.setBackgroundColor(Palette.adjustAlpha(positionOffset * 0.7f));
-
                     }
                 }
 
