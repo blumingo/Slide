@@ -37,19 +37,7 @@ import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.KeyboardUtil;
 
-/**
- * This activity is responsible for the view when clicking on a post, showing the post and its
- * comments underneath with the slide left/right for the next post.
- * <p/>
- * When the end of the currently loaded posts is being reached, more posts are loaded asynchronously
- * in {@link CommentsScreenPagerAdapter}.
- * <p/>
- * Comments are displayed in the {@link CommentPage} fragment.
- * <p/>
- * Created by ccrama on 9/17/2015.
- * Update by Blumingo on 30/09/2022
- */
-public class CommentsScreen extends BaseActivityAnim implements SubmissionDisplay {
+public class NewCommentScreen extends BaseActivityAnim implements SubmissionDisplay {
     public static final String EXTRA_PROFILE = "profile";
     public static final String EXTRA_PAGE = "page";
     public static final String EXTRA_SUBREDDIT = "subreddit";
@@ -79,7 +67,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                 case KeyEvent.KEYCODE_VOLUME_UP:
                 case KeyEvent.KEYCODE_VOLUME_DOWN:
                 case KeyEvent.KEYCODE_SEARCH:
-                    Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem()-1);
+                    Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem());
                     if (mCurrentFragment != null && !(mCurrentFragment instanceof BlankFragment)) {
                         return  ((CommentPage) mCurrentFragment).onKeyDown(keyCode, event);
                     }
@@ -106,6 +94,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             Reddit.appRestart.edit().putBoolean("tutorialSwipeComment", true).apply();
         } else if (!Reddit.appRestart.contains("tutorial_comm")) {
             Reddit.appRestart.edit().putBoolean("tutorial_comm", true).apply();
+
         }
 
     }
@@ -134,7 +123,10 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             super.onCreate(savedInstance);
             setContentView(R.layout.activity_slide);
         }
+
+
         Reddit.setDefaultErrorHandler(this);
+
         firstPage = getIntent().getExtras().getInt(EXTRA_PAGE, -1);
         baseSubreddit = getIntent().getExtras().getString(EXTRA_SUBREDDIT);
         subreddit = baseSubreddit;
@@ -145,7 +137,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             subredditPosts = new MultiredditPosts(multireddit, profile);
         } else {
             baseSubreddit = subreddit.toLowerCase(Locale.ENGLISH);
-            subredditPosts = new SubredditPosts(baseSubreddit, CommentsScreen.this);
+            subredditPosts = new SubredditPosts(baseSubreddit, NewCommentScreen.this);
         }
 
         if (firstPage == -1 || firstPage < 0) {
@@ -154,7 +146,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         } else {
             OfflineSubreddit o = OfflineSubreddit.getSubreddit(
                     multireddit == null ? baseSubreddit : "multi" + multireddit,
-                    OfflineSubreddit.currentid, !Authentication.didOnline, CommentsScreen.this);
+                    OfflineSubreddit.currentid, !Authentication.didOnline, NewCommentScreen.this);
             subredditPosts.getPosts().addAll(o.submissions);
             currentPosts.addAll(subredditPosts.getPosts());
 
@@ -182,9 +174,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             pager.setAdapter(comments);
 
             currentPage = firstPage;
-
-
-            pager.setCurrentItem(firstPage + 1, false);
+            pager.setCurrentItem(firstPage + 1, true);
             pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
 
                 @Override
@@ -194,8 +184,8 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                         finish();
                     }
                     if (position == firstPage && !popup) {
-                        if (((CommentsScreen.CommentsScreenPagerAdapter) Objects.requireNonNull(pager.getAdapter())).blankPage != null) {
-                            ((CommentsScreen.CommentsScreenPagerAdapter) pager.getAdapter()).blankPage.doOffset(
+                        if (((NewCommentScreen.CommentsScreenPagerAdapter) Objects.requireNonNull(pager.getAdapter())).blankPage != null) {
+                            ((NewCommentScreen.CommentsScreenPagerAdapter) pager.getAdapter()).blankPage.doOffset(
                                     positionOffset);
                         }
                         pager.setBackgroundColor(Palette.adjustAlpha(positionOffset * 0.7f));
@@ -211,19 +201,16 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                         updateSubredditAndSubmission(currentPosts.get(position));
 
                         if (currentPosts.size() - 2 <= position && subredditPosts.hasMore()) {
-                            subredditPosts.loadMore(CommentsScreen.this.getApplicationContext(), CommentsScreen.this, false);
+                            subredditPosts.loadMore(NewCommentScreen.this.getApplicationContext(), NewCommentScreen.this, false);
                         }
 
                         currentPage = position;
                         seen.add(position);
 
 
-                        Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem()-1);
-                        if (mCurrentFragment instanceof CommentPage) {
-                           CommentPage commentPage =  (CommentPage) mCurrentFragment;
-                            if (!commentPage.loaded && commentPage.isAdded()){
-                                commentPage.doAdapter(true);
-                            }
+                        Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem());
+                        if (mCurrentFragment != null && !(mCurrentFragment instanceof BlankFragment)) {
+                            ((CommentPage) mCurrentFragment).doAdapter(true);
                         }
 
 
