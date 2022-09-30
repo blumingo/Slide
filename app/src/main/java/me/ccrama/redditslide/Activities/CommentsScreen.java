@@ -6,15 +6,17 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.ViewGroup;
 import android.view.Window;
 
 import androidx.annotation.NonNull;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import net.dean.jraw.models.Submission;
 
@@ -49,9 +51,9 @@ import me.ccrama.redditslide.util.KeyboardUtil;
  * Created by ccrama on 9/17/2015.
  */
 public class CommentsScreen extends BaseActivityAnim implements SubmissionDisplay {
-    public static final String EXTRA_PROFILE     = "profile";
-    public static final String EXTRA_PAGE        = "page";
-    public static final String EXTRA_SUBREDDIT   = "subreddit";
+    public static final String EXTRA_PROFILE = "profile";
+    public static final String EXTRA_PAGE = "page";
+    public static final String EXTRA_SUBREDDIT = "subreddit";
     public static final String EXTRA_MULTIREDDIT = "multireddit";
 
     public ArrayList<Submission> currentPosts;
@@ -115,7 +117,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         }
     }
 
-    public int                currentPage;
+    public int currentPage;
     public ArrayList<Integer> seen;
 
     public boolean popup;
@@ -190,57 +192,56 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         } else {
             updateSubredditAndSubmission(currentPosts.get(firstPage));
 
-            final ViewPager pager = (ViewPager) findViewById(R.id.content_view);
-
-            comments = new CommentsScreenPagerAdapter(getSupportFragmentManager());
+            final ViewPager2 pager = (ViewPager2) findViewById(R.id.content_view);
+            comments = new CommentsScreenPagerAdapter(this);
             pager.setAdapter(comments);
+
             currentPage = firstPage;
 
             pager.setCurrentItem(firstPage + 1);
+            pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset,
+                                           int positionOffsetPixels) {
+                    if (position <= firstPage && positionOffsetPixels == 0) {
+                        finish();
+                    }
+                    if (position == firstPage && !popup) {
+                        if (((CommentsScreenPagerAdapter) pager.getAdapter()).blankPage != null) {
+                            ((CommentsScreenPagerAdapter) pager.getAdapter()).blankPage.doOffset(
+                                    positionOffset);
+                        }
+                        pager.setBackgroundColor(Palette.adjustAlpha(positionOffset * 0.7f));
 
-            pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-                                              @Override
-                                              public void onPageScrolled(int position, float positionOffset,
-                                                      int positionOffsetPixels) {
-                                                  if (position <= firstPage && positionOffsetPixels == 0) {
-                                                      finish();
-                                                  }
-                                                  if (position == firstPage && !popup) {
-                                                      if (((CommentsScreenPagerAdapter) pager.getAdapter()).blankPage != null) {
-                                                          ((CommentsScreenPagerAdapter) pager.getAdapter()).blankPage.doOffset(
-                                                                  positionOffset);
-                                                      }
-                                                      pager.setBackgroundColor(Palette.adjustAlpha(positionOffset * 0.7f));
+                    }
+                }
 
-                                                  }
-                                              }
+                @Override
+                public void onPageSelected(int position) {
+                    if (position != firstPage && position < currentPosts.size()) {
+                        position = position - 1;
+                        if (position < 0) position = 0;
+                        updateSubredditAndSubmission(currentPosts.get(position));
 
-                                              @Override
-                                              public void onPageSelected(int position) {
-                                                  if (position != firstPage && position < currentPosts.size()) {
-                                                      position = position - 1;
-                                                      if (position < 0) position = 0;
-                                                      updateSubredditAndSubmission(currentPosts.get(position));
+                        if (currentPosts.size() - 2 <= position && subredditPosts.hasMore()) {
+                            subredditPosts.loadMore(CommentsScreen.this.getApplicationContext(),
+                                    CommentsScreen.this, false);
+                        }
 
-                                                      if (currentPosts.size() - 2 <= position && subredditPosts.hasMore()) {
-                                                          subredditPosts.loadMore(CommentsScreen.this.getApplicationContext(),
-                                                                  CommentsScreen.this, false);
-                                                      }
+                        currentPage = position;
+                        seen.add(position);
 
-                                                      currentPage = position;
-                                                      seen.add(position);
+                        Bundle conData = new Bundle();
+                        conData.putIntegerArrayList("seen", seen);
+                        conData.putInt("lastPage", position);
+                        Intent intent = new Intent();
+                        intent.putExtras(conData);
+                        setResult(RESULT_OK, intent);
+                    }
+                }
 
-                                                      Bundle conData = new Bundle();
-                                                      conData.putIntegerArrayList("seen", seen);
-                                                      conData.putInt("lastPage", position);
-                                                      Intent intent = new Intent();
-                                                      intent.putExtras(conData);
-                                                      setResult(RESULT_OK, intent);
-                                                  }
-                                              }
-                                          }
+            });
 
-            );
 
         }
         if (!Reddit.appRestart.contains("tutorialSwipeComments")) {
@@ -254,7 +255,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
 
     private void updateSubredditAndSubmission(Submission post) {
         subreddit = post.getSubredditName();
-        if(post.getSubredditName() == null){
+        if (post.getSubredditName() == null) {
             subreddit = "Promoted";
         }
         themeSystemBars(subreddit);
@@ -310,32 +311,17 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         comments.notifyDataSetChanged();
     }
 
-    private class CommentsScreenPagerAdapter extends FragmentStatePagerAdapter {
-        private CommentPage   mCurrentFragment;
-        public  BlankFragment blankPage;
+    private class CommentsScreenPagerAdapter extends FragmentStateAdapter {
+        private CommentPage mCurrentFragment;
+        public BlankFragment blankPage;
 
-        CommentsScreenPagerAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        }
-
-        Fragment getCurrentFragment() {
-            return mCurrentFragment;
-        }
-
-        @Override
-        public void setPrimaryItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-            super.setPrimaryItem(container, position, object);
-            if (getCurrentFragment() != object && object instanceof CommentPage) {
-                mCurrentFragment = (CommentPage) object;
-                if (!mCurrentFragment.loaded && mCurrentFragment.isAdded()) {
-                    mCurrentFragment.doAdapter(true);
-                }
-            }
+        CommentsScreenPagerAdapter(FragmentActivity fa) {
+            super(fa);
         }
 
         @NonNull
         @Override
-        public Fragment getItem(int i) {
+        public Fragment createFragment(int i) {
             if (i <= firstPage || i == 0) {
                 blankPage = new BlankFragment();
                 return blankPage;
@@ -359,8 +345,24 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             }
         }
 
+        Fragment getCurrentFragment() {
+            return mCurrentFragment;
+        }
+
+//        @Override
+//        public void setPrimaryItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+//            super.setPrimaryItem(container, position, object);
+//            if (getCurrentFragment() != object && object instanceof CommentPage) {
+//                mCurrentFragment = (CommentPage) object;
+//                if (!mCurrentFragment.loaded && mCurrentFragment.isAdded()) {
+//                    mCurrentFragment.doAdapter(true);
+//                }
+//            }
+//        }
+
+
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return currentPosts.size() + 1;
         }
     }

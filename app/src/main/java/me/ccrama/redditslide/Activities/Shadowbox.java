@@ -4,9 +4,10 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import net.dean.jraw.models.Submission;
 
@@ -42,7 +43,8 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
     int firstPage;
     private int count;
 
-    public ViewPager pager;
+
+    public ViewPager2 pager;
 
     @Override
     public void onCreate(Bundle savedInstance) {
@@ -61,7 +63,7 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         }
         subreddit = multireddit == null ? subreddit : ("multi" + multireddit);
 
-        if(multireddit == null){
+        if (multireddit == null) {
             setShareUrl("https://reddit.com/r/" + subreddit);
         }
 
@@ -69,23 +71,25 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         super.onCreate(savedInstance);
         setContentView(R.layout.activity_slide);
 
-        long offline = getIntent().getLongExtra("offline",0L);
+        long offline = getIntent().getLongExtra("offline", 0L);
 
         OfflineSubreddit submissions = OfflineSubreddit.getSubreddit(subreddit, offline, !Authentication.didOnline, this);
 
         subredditPosts.getPosts().addAll(submissions.submissions);
         count = subredditPosts.getPosts().size();
 
-        pager = (ViewPager) findViewById(R.id.content_view);
-        submissionsPager = new ShadowboxPagerAdapter(getSupportFragmentManager());
+        pager = (ViewPager2) findViewById(R.id.content_view);
+        submissionsPager = new ShadowboxPagerAdapter(this);
         pager.setAdapter(submissionsPager);
         pager.setCurrentItem(firstPage);
-        pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+        pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
                 if (SettingValues.storeHistory) {
                     if (subredditPosts.getPosts().get(position).isNsfw() && !SettingValues.storeNSFWHistory) {
-                    } else HasSeen.addSeen(subredditPosts.getPosts().get(position).getFullName());
+                        return;
+                    }
+                    HasSeen.addSeen(subredditPosts.getPosts().get(position).getFullName());
                 }
             }
         });
@@ -142,15 +146,15 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         submissionsPager.notifyDataSetChanged();
     }
 
-    private class ShadowboxPagerAdapter extends FragmentStatePagerAdapter {
+    private class ShadowboxPagerAdapter extends FragmentStateAdapter {
 
-        ShadowboxPagerAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+        ShadowboxPagerAdapter(FragmentActivity fa) {
+            super(fa);
         }
 
         @NonNull
         @Override
-        public Fragment getItem(int i) {
+        public Fragment createFragment(int i) {
             Fragment f = null;
             ContentType.Type t = ContentType.getContentType(subredditPosts.getPosts().get(i));
 
@@ -233,7 +237,7 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return count;
         }
     }
