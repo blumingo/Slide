@@ -48,7 +48,7 @@ import okhttp3.internal.Version;
  * View containing an ExoPlayer
  */
 public class ExoVideoView extends RelativeLayout {
-    private Context context;
+    private final Context context;
     private SimpleExoPlayer player;
     private DefaultTrackSelector trackSelector;
     private PlayerControlView playerUI;
@@ -208,13 +208,6 @@ public class ExoVideoView extends RelativeLayout {
         }
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        // If we don't release the player here, hardware decoders won't be released, breaking ExoPlayer device-wide
-        stop();
-    }
-
     /**
      * Plays the video
      */
@@ -335,7 +328,7 @@ public class ExoVideoView extends RelativeLayout {
                 } else {
                     hqAttached = true;
                 }
-                // Lopp through the tracks, check if they're video. If we have at least 2 video tracks we can set
+                // Loop through the tracks, check if they're video. If we have at least 2 video tracks we can set
                 // up quality selection.
                 int videoTrackCounter = 0;
                 for (int trackGroup = 0; trackGroup < trackGroups.length; trackGroup++) {
@@ -375,7 +368,7 @@ public class ExoVideoView extends RelativeLayout {
      * Helps manage audio focus
      */
     private class AudioFocusHelper implements AudioManager.OnAudioFocusChangeListener {
-        private AudioManager manager;
+        private final AudioManager manager;
         private boolean wasPlaying;
         private AudioFocusRequestCompat request;
 
@@ -423,8 +416,8 @@ public class ExoVideoView extends RelativeLayout {
     }
 
     static class PlayerUIFadeInAnimation extends AnimationSet {
-        private PlayerControlView animationView;
-        private boolean toVisible;
+        private final PlayerControlView animationView;
+        private final boolean toVisible;
 
         PlayerUIFadeInAnimation(PlayerControlView view, boolean toVisible, long duration) {
             super(false);

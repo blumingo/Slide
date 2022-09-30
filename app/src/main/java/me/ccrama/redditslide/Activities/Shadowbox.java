@@ -5,7 +5,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -101,30 +100,24 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
     @Override
     public void updateSuccess(final List<Submission> submissions, final int startIndex) {
         if (SettingValues.storeHistory) LastComments.setCommentsSince(submissions);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                count = subredditPosts.getPosts().size();
-                if (startIndex != -1) {
-                    // TODO determine correct behaviour
-                    //comments.notifyItemRangeInserted(startIndex, posts.posts.size());
-                    submissionsPager.notifyDataSetChanged();
-                } else {
-                    submissionsPager.notifyDataSetChanged();
-                }
-
+        runOnUiThread(() -> {
+            count = subredditPosts.getPosts().size();
+            if (startIndex != -1) {
+                // TODO determine correct behaviour
+                //comments.notifyItemRangeInserted(startIndex, posts.posts.size());
+                submissionsPager.notifyDataSetChanged();
+            } else {
+                submissionsPager.notifyDataSetChanged();
             }
+
         });
     }
 
     @Override
     public void updateOffline(List<Submission> submissions, final long cacheTime) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                count = subredditPosts.getPosts().size();
-                submissionsPager.notifyDataSetChanged();
-            }
+        runOnUiThread(() -> {
+            count = subredditPosts.getPosts().size();
+            submissionsPager.notifyDataSetChanged();
         });
     }
 
