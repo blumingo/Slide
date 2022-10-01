@@ -10,8 +10,11 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+
 import net.dean.jraw.models.Submission;
 
+import java.util.HashMap;
 import java.util.List;
 
 import me.ccrama.redditslide.Adapters.MultiredditPosts;
@@ -44,6 +47,15 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
     int firstPage;
     private int count;
 
+    @Override
+    public void onBackPressed() {
+            MediaFragment mCurrentFragment = (MediaFragment) submissionsPager.hashMap.get(pager.getCurrentItem());
+            if(mCurrentFragment!= null && mCurrentFragment.slideLayout.getPanelState() ==  SlidingUpPanelLayout.PanelState.EXPANDED){
+                mCurrentFragment.slideLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+            }else{
+                super.onBackPressed();
+            }
+    }
 
     public ViewPager2 pager;
 
@@ -143,7 +155,7 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
     }
 
     private class ShadowboxPagerAdapter extends FragmentStateAdapter {
-
+        private final HashMap<Integer, Fragment> hashMap = new HashMap<>();
         ShadowboxPagerAdapter(FragmentActivity fa) {
             super(fa);
         }
@@ -228,7 +240,7 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
                 }
                 break;
             }
-
+            hashMap.put(i, f);
             return f;
         }
 

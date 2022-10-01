@@ -96,6 +96,7 @@ public class MediaFragment extends Fragment {
     private OkHttpClient client;
     private Gson gson;
     private String mashapeKey;
+    public SlidingUpPanelLayout slideLayout;
 
     @Override
     public void onDestroy() {
@@ -144,7 +145,7 @@ public class MediaFragment extends Fragment {
         typeImage.setVisibility(View.VISIBLE);
         SubsamplingScaleImageView img = rootView.findViewById(R.id.submission_image);
 
-        final SlidingUpPanelLayout slideLayout = rootView.findViewById(R.id.sliding_layout);
+        slideLayout = rootView.findViewById(R.id.sliding_layout);
         ContentType.Type type = ContentType.getContentType(s);
 
         if (type == ContentType.Type.VREDDIT_REDIRECT || type == ContentType.Type.VREDDIT_DIRECT) {

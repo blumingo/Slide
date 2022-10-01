@@ -11,6 +11,7 @@ import android.view.Window;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -182,9 +183,6 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             pager.setAdapter(comments);
 
             currentPage = firstPage;
-
-
-            pager.setCurrentItem(firstPage + 1, false);
             pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
 
                 @Override
@@ -232,6 +230,8 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                 }
 
             });
+            pager.setCurrentItem(firstPage + 1, false);
+
         }
 
         if (!Reddit.appRestart.contains("tutorialSwipeComments")) {
@@ -242,6 +242,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         }
 
     }
+
 
 
     private void updateSubredditAndSubmission(Submission post) {

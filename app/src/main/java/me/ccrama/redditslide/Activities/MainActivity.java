@@ -1233,7 +1233,7 @@ public class MainActivity extends BaseActivity
             ((SwitchCompat) drawerLayout.findViewById(R.id.toggle_night_mode)).setChecked(SettingValues.isNight());
             restartTheme();
         }
-        checkClipboard();
+        //checkClipboard();
 
         if (pager != null && commentPager) {
             if (pager.getCurrentItem() != toOpenComments && shouldLoad != null) {
