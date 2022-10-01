@@ -1,5 +1,7 @@
 package me.ccrama.redditslide.Activities;
 
+import static androidx.viewpager2.widget.ViewPager2.ORIENTATION_VERTICAL;
+
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -81,6 +83,7 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         submissionsPager = new ShadowboxPagerAdapter(this);
         pager.setAdapter(submissionsPager);
         pager.setCurrentItem(firstPage);
+        pager.setOrientation(ORIENTATION_VERTICAL);
         pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
