@@ -11,7 +11,6 @@ import android.view.Window;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -21,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 import me.ccrama.redditslide.Adapters.MultiredditPosts;
 import me.ccrama.redditslide.Adapters.SubmissionDisplay;
@@ -80,9 +78,9 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                 case KeyEvent.KEYCODE_VOLUME_UP:
                 case KeyEvent.KEYCODE_VOLUME_DOWN:
                 case KeyEvent.KEYCODE_SEARCH:
-                    Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem()-1);
+                    Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem() - 1);
                     if (mCurrentFragment != null && !(mCurrentFragment instanceof BlankFragment)) {
-                        return  ((CommentPage) mCurrentFragment).onKeyDown(keyCode, event);
+                        return ((CommentPage) mCurrentFragment).onKeyDown(keyCode, event);
                     }
 
                 default:
@@ -211,10 +209,10 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                         seen.add(position);
 
 
-                        Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem()-1);
+                        Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem() - 1);
                         if (mCurrentFragment instanceof CommentPage) {
-                           CommentPage commentPage =  (CommentPage) mCurrentFragment;
-                            if (!commentPage.loaded && commentPage.isAdded()){
+                            CommentPage commentPage = (CommentPage) mCurrentFragment;
+                            if (!commentPage.loaded && commentPage.isAdded()) {
                                 commentPage.doAdapter(true);
                             }
                         }
@@ -231,7 +229,6 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
 
             });
             pager.setCurrentItem(firstPage + 1, false);
-
         }
 
         if (!Reddit.appRestart.contains("tutorialSwipeComments")) {
@@ -242,8 +239,6 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         }
 
     }
-
-
 
     private void updateSubredditAndSubmission(Submission post) {
         subreddit = post.getSubredditName();
