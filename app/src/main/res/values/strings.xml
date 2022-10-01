@@ -1227,4 +1227,5 @@
     <string name="description_high_colorspace">Loads full colorspace on images, potentially leading to higher memory usage</string>
     <string name="editor_btn_select_flair">Select flair</string>
     <string name="submit_selected_flair">Selected flair: %s</string>
+    <string name="Mute">Mute</string>
 </resources>
