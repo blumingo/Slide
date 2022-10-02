@@ -23,7 +23,6 @@ import me.ccrama.redditslide.PostMatch;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionCache;
 import me.ccrama.redditslide.Synccit.MySynccitReadTask;
-import me.ccrama.redditslide.util.AsyncResponse;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.SortingUtil;
 
