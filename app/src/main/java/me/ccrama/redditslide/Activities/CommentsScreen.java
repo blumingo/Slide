@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import me.ccrama.redditslide.Adapters.ContributionPosts;
 import me.ccrama.redditslide.Adapters.MultiredditPosts;
 import me.ccrama.redditslide.Adapters.SubmissionDisplay;
 import me.ccrama.redditslide.Adapters.SubredditPosts;
@@ -53,7 +54,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
     public static final String EXTRA_PAGE = "page";
     public static final String EXTRA_SUBREDDIT = "subreddit";
     public static final String EXTRA_MULTIREDDIT = "multireddit";
-
+    public static final String EXTRA_WHERE = "where";
     public ArrayList<Submission> currentPosts;
 
     public PostLoader subredditPosts;
@@ -136,9 +137,13 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         subreddit = baseSubreddit;
         multireddit = getIntent().getExtras().getString(EXTRA_MULTIREDDIT);
         profile = getIntent().getExtras().getString(EXTRA_PROFILE, "");
+        String where = getIntent().getExtras().getString(EXTRA_WHERE, "submitted");
         currentPosts = new ArrayList<>();
         if (multireddit != null) {
             subredditPosts = new MultiredditPosts(multireddit, profile);
+        } else if (!profile.isEmpty()) {
+            firstPage = -1;
+            subredditPosts = new ContributionPosts(profile, where, CommentsScreen.this);
         } else {
             baseSubreddit = subreddit.toLowerCase(Locale.ENGLISH);
             subredditPosts = new SubredditPosts(baseSubreddit, CommentsScreen.this);

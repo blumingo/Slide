@@ -97,6 +97,8 @@ public class MediaFragment extends Fragment {
     private Gson gson;
     private String mashapeKey;
     public SlidingUpPanelLayout slideLayout;
+    public String profile;
+    public String where;
 
     @Override
     public void onDestroy() {
@@ -245,10 +247,15 @@ public class MediaFragment extends Fragment {
                                             SlidingUpPanelLayout.PanelState previousState,
                                             SlidingUpPanelLayout.PanelState newState) {
                 if (newState == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                    if (!profile.isEmpty()) {
+                        return;
+                    }
                     rootView.findViewById(R.id.base).setOnClickListener(v -> {
                         Intent i2 = new Intent(getActivity(), CommentsScreen.class);
                         i2.putExtra(CommentsScreen.EXTRA_PAGE, i);
                         i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, sub);
+                        i2.putExtra(CommentsScreen.EXTRA_PROFILE, profile);
+                        i2.putExtra(CommentsScreen.EXTRA_WHERE, where);
                         getActivity().startActivity(i2);
                     });
                 } else {
@@ -265,6 +272,8 @@ public class MediaFragment extends Fragment {
         Bundle bundle = this.getArguments();
         firstUrl = bundle.getString("firstUrl");
         sub = ((Shadowbox) getActivity()).subreddit;
+        profile = ((Shadowbox) getActivity()).profile;
+        where = ((Shadowbox) getActivity()).where;
         i = bundle.getInt("page");
         if (((Shadowbox) getActivity()).subredditPosts.getPosts().size() != 0) {
             s = ((Shadowbox) getActivity()).subredditPosts.getPosts().get(i);

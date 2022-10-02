@@ -52,6 +52,12 @@ public class ContributionPosts extends GeneralPosts implements PostLoader {
         this.subreddit = subreddit;
         this.where = where;
     }
+    public ContributionPosts(String subreddit, String where, Context c) {
+        submissionPosts = new ArrayList<>();
+        this.subreddit = subreddit;
+        this.where = where;
+        this.c = c;
+    }
 
     public void bindAdapter(ContributionAdapter a, SwipeRefreshLayout layout) {
         this.adapter = a;
