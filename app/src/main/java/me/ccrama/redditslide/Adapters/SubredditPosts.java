@@ -43,20 +43,20 @@ import me.ccrama.redditslide.util.TimeUtils;
 
 /**
  * This class is reponsible for loading subreddit specific submissions {@link loadMore(Context,
- * SubmissionDisplay, boolean, String)} is implemented asynchronously. <p/> Created by ccrama on
+ * SubmissionDisplay, Boolean)} is implemented asynchronously. <p/> Created by ccrama on
  * 9/17/2015.
  */
 public class SubredditPosts implements PostLoader {
     public List<Submission> posts;
-    public String           subreddit;
-    public String           subredditRandom;
+    public String subreddit;
+    public String subredditRandom;
     public boolean nomore = false;
-    public  boolean          offline;
-    public  boolean          forced;
-    public  boolean          loading;
-    public  boolean          error;
-    private Paginator        paginator;
-    public  OfflineSubreddit cached;
+    public boolean offline;
+    public boolean forced;
+    public boolean loading;
+    public boolean error;
+    private Paginator paginator;
+    public OfflineSubreddit cached;
     Context c;
     boolean force18;
 
@@ -75,12 +75,12 @@ public class SubredditPosts implements PostLoader {
 
     @Override
     public void loadMore(final Context context, final SubmissionDisplay display,
-            final boolean reset) {
+                         final boolean reset) {
         new LoadData(context, display, reset).execute(subreddit);
     }
 
     public void loadMore(Context context, SubmissionDisplay display, boolean reset,
-            String subreddit) {
+                         String subreddit) {
         this.subreddit = subreddit;
         loadMore(context, display, reset);
     }
@@ -99,7 +99,7 @@ public class SubredditPosts implements PostLoader {
 
     boolean authedOnce = false;
     boolean usedOffline;
-    public long              currentid;
+    public long currentid;
     public SubmissionDisplay displayer;
 
     /**
@@ -118,9 +118,8 @@ public class SubredditPosts implements PostLoader {
         public int start;
 
         @Override
-        public void onPreExecute()
-        {
-            if(reset) {
+        public void onPreExecute() {
+            if (reset) {
                 posts.clear();
                 displayer.onAdapterUpdated();
             }
@@ -352,7 +351,7 @@ public class SubredditPosts implements PostLoader {
             titles[i] = (Long.parseLong(split[1]) == 0 ? c.getString(
                     R.string.settings_backup_submission_only)
                     : TimeUtils.getTimeAgo(Long.parseLong(split[1]), c) + c.getString(
-                            R.string.settings_backup_comments));
+                    R.string.settings_backup_comments));
             base[i] = s;
             i++;
         }

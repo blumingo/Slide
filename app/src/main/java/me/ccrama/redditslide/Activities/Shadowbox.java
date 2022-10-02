@@ -1,7 +1,5 @@
 package me.ccrama.redditslide.Activities;
 
-import static androidx.viewpager2.widget.ViewPager2.ORIENTATION_VERTICAL;
-
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,6 +15,7 @@ import net.dean.jraw.models.Submission;
 import java.util.HashMap;
 import java.util.List;
 
+import me.ccrama.redditslide.Adapters.ContributionPosts;
 import me.ccrama.redditslide.Adapters.MultiredditPosts;
 import me.ccrama.redditslide.Adapters.SubmissionDisplay;
 import me.ccrama.redditslide.Adapters.SubredditPosts;
@@ -46,15 +45,16 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
     public String subreddit;
     int firstPage;
     private int count;
+    ShadowboxPagerAdapter submissionsPager;
 
     @Override
     public void onBackPressed() {
-            MediaFragment mCurrentFragment = (MediaFragment) submissionsPager.hashMap.get(pager.getCurrentItem());
-            if(mCurrentFragment!= null && mCurrentFragment.slideLayout.getPanelState() ==  SlidingUpPanelLayout.PanelState.EXPANDED){
-                mCurrentFragment.slideLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-            }else{
-                super.onBackPressed();
-            }
+        MediaFragment mCurrentFragment = (MediaFragment) submissionsPager.hashMap.get(pager.getCurrentItem());
+        if (mCurrentFragment != null && mCurrentFragment.slideLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+            mCurrentFragment.slideLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     public ViewPager2 pager;
@@ -69,14 +69,20 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         subreddit = getIntent().getExtras().getString(EXTRA_SUBREDDIT);
         String multireddit = getIntent().getExtras().getString(EXTRA_MULTIREDDIT);
         String profile = getIntent().getExtras().getString(EXTRA_PROFILE, "");
+        String where = "submitted";
+        boolean isProfile = false;
         if (multireddit != null) {
             subredditPosts = new MultiredditPosts(multireddit, profile);
+        } else if (!profile.isEmpty()) {
+            isProfile = true;
+            subredditPosts = new ContributionPosts(profile, where, Shadowbox.this, Shadowbox.this);
         } else {
             subredditPosts = new SubredditPosts(subreddit, Shadowbox.this);
         }
+
         subreddit = multireddit == null ? subreddit : ("multi" + multireddit);
 
-        if (multireddit == null) {
+        if (multireddit == null && profile.isEmpty()) {
             setShareUrl("https://reddit.com/r/" + subreddit);
         }
 
@@ -84,18 +90,20 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         super.onCreate(savedInstance);
         setContentView(R.layout.activity_slide);
 
-        long offline = getIntent().getLongExtra("offline", 0L);
 
-        OfflineSubreddit submissions = OfflineSubreddit.getSubreddit(subreddit, offline, !Authentication.didOnline, this);
-
-        subredditPosts.getPosts().addAll(submissions.submissions);
+        if (!isProfile) {
+            long offline = getIntent().getLongExtra("offline", 0L);
+            OfflineSubreddit submissions = OfflineSubreddit.getSubreddit(subreddit, offline, !Authentication.didOnline, this);
+            subredditPosts.getPosts().addAll(submissions.submissions);
+        }
         count = subredditPosts.getPosts().size();
+
 
         pager = (ViewPager2) findViewById(R.id.content_view);
         submissionsPager = new ShadowboxPagerAdapter(this);
         pager.setAdapter(submissionsPager);
         pager.setCurrentItem(firstPage);
-        pager.setOrientation(ORIENTATION_VERTICAL);
+        //pager.setOrientation(ORIENTATION_VERTICAL);
         pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -109,8 +117,6 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         });
 
     }
-
-    ShadowboxPagerAdapter submissionsPager;
 
     @Override
     public void updateSuccess(final List<Submission> submissions, final int startIndex) {
@@ -154,8 +160,10 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         submissionsPager.notifyDataSetChanged();
     }
 
+
     private class ShadowboxPagerAdapter extends FragmentStateAdapter {
         private final HashMap<Integer, Fragment> hashMap = new HashMap<>();
+
         ShadowboxPagerAdapter(FragmentActivity fa) {
             super(fa);
         }
@@ -166,7 +174,7 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
             Fragment f = null;
             ContentType.Type t = ContentType.getContentType(subredditPosts.getPosts().get(i));
 
-            if (subredditPosts.getPosts().size() - 2 <= i && subredditPosts.hasMore()) {
+            if (subredditPosts.getPosts().size() - 3 <= i && subredditPosts.hasMore()) {
                 subredditPosts.loadMore(Shadowbox.this.getApplicationContext(), Shadowbox.this, false);
             }
             switch (t) {

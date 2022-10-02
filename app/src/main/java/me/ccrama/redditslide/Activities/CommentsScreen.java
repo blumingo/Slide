@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.Window;
 
 import androidx.annotation.NonNull;
@@ -78,7 +79,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                 case KeyEvent.KEYCODE_VOLUME_UP:
                 case KeyEvent.KEYCODE_VOLUME_DOWN:
                 case KeyEvent.KEYCODE_SEARCH:
-                    Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem() - 1);
+                    Fragment mCurrentFragment = getCurrentFragment();
                     if (mCurrentFragment != null && !(mCurrentFragment instanceof BlankFragment)) {
                         return ((CommentPage) mCurrentFragment).onKeyDown(keyCode, event);
                     }
@@ -183,6 +184,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             currentPage = firstPage;
             pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
 
+
                 @Override
                 public void onPageScrolled(int position, float positionOffset,
                                            int positionOffsetPixels) {
@@ -192,6 +194,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                     if (position == firstPage && !popup) {
                         pager.setBackgroundColor(Palette.adjustAlpha(positionOffset * 0.7f));
                     }
+                    // loadComments();
                 }
 
                 @Override
@@ -209,15 +212,6 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                         seen.add(position);
 
 
-                        Fragment mCurrentFragment = comments.hashMap.get(pager.getCurrentItem() - 1);
-                        if (mCurrentFragment instanceof CommentPage) {
-                            CommentPage commentPage = (CommentPage) mCurrentFragment;
-                            if (!commentPage.loaded && commentPage.isAdded()) {
-                                commentPage.doAdapter(true);
-                            }
-                        }
-
-
                         Bundle conData = new Bundle();
                         conData.putIntegerArrayList("seen", seen);
                         conData.putInt("lastPage", position);
@@ -228,7 +222,9 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                 }
 
             });
+            // pager.setPageTransformer(new ParallaxPageTransformer());
             pager.setCurrentItem(firstPage + 1, false);
+
         }
 
         if (!Reddit.appRestart.contains("tutorialSwipeComments")) {
@@ -238,6 +234,21 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             startActivityForResult(i, 333);
         }
 
+    }
+
+
+    private Fragment getCurrentFragment() {
+        return comments.hashMap.get(pager.getCurrentItem() - 1);
+    }
+
+    private void loadComments() {
+        Fragment mCurrentFragment = getCurrentFragment();
+        if (mCurrentFragment instanceof CommentPage) {
+            CommentPage commentPage = (CommentPage) mCurrentFragment;
+            if (!commentPage.loaded && commentPage.isAdded()) {
+                commentPage.doAdapter(true);
+            }
+        }
     }
 
     private void updateSubredditAndSubmission(Submission post) {

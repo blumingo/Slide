@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewpager.widget.ViewPager;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -59,6 +61,8 @@ import me.ccrama.redditslide.Fragments.HistoryView;
 import me.ccrama.redditslide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.UserTags;
+import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager;
+import me.ccrama.redditslide.Views.PreCachingLayoutManager;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.LayoutUtils;
@@ -87,6 +91,7 @@ public class Profile extends BaseActivityAnim {
     private TabLayout tabs;
     private String[] usedArray;
     public boolean isSavedView;
+    ProfilePagerAdapter adapter;
 
     private static boolean isValidUsername(String user) {
         /* https://github.com/reddit/reddit/blob/master/r2/r2/lib/validator/validator.py#L261 */
@@ -216,7 +221,7 @@ public class Profile extends BaseActivityAnim {
 
     private void setDataSet(String[] data) {
         usedArray = data;
-        ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
+        adapter = new ProfilePagerAdapter(getSupportFragmentManager());
 
         pager.setAdapter(adapter);
         pager.setOffscreenPageLimit(1);
@@ -251,9 +256,15 @@ public class Profile extends BaseActivityAnim {
     }
 
     private class ProfilePagerAdapter extends FragmentStatePagerAdapter {
+        protected ContributionsView mCurrentFragment;
+        HashMap<Integer, Fragment> hashMap = new HashMap<>();
 
         ProfilePagerAdapter(FragmentManager fm) {
             super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+        }
+
+        public Fragment getCurrentFragment() {
+            return hashMap.get(pager.getCurrentItem());
         }
 
         @NonNull
@@ -294,6 +305,7 @@ public class Profile extends BaseActivityAnim {
                 args.putString("where", place);
 
                 f.setArguments(args);
+                hashMap.put(i, f);
                 return f;
             } else {
                 return new HistoryView();
@@ -560,7 +572,8 @@ public class Profile extends BaseActivityAnim {
                             MaterialDialog.Builder b = new MaterialDialog.Builder(Profile.this)
                                     .title(getString(R.string.profile_tag_set, name))
                                     .input(getString(R.string.profile_tag), UserTags.getUserTag(name), false,
-                                            (dialog, input) -> {})
+                                            (dialog, input) -> {
+                                            })
                                     .positiveText(R.string.profile_btn_tag)
                                     .neutralText(R.string.btn_cancel);
 
@@ -869,11 +882,53 @@ public class Profile extends BaseActivityAnim {
                             .show();
                 }
                 return true;
+            case (R.id.action_shadowbox):
 
+                subreddit = "frontpage";
+                Intent i2 = new Intent(this, Shadowbox.class);
+                i2.putExtra(Shadowbox.EXTRA_PAGE, getCurrentPage());
+                i2.putExtra(Shadowbox.EXTRA_SUBREDDIT, subreddit);
+                i2.putExtra(Shadowbox.EXTRA_PROFILE, name);
+                startActivity(i2);
+
+
+                return true;
             case (R.id.sort):
                 openPopup();
                 return true;
         }
         return false;
     }
+
+    public int getCurrentPage() {
+        int position = 0;
+        int currentOrientation = getResources().getConfiguration().orientation;
+        if (adapter.getCurrentFragment() == null) {
+            return 0;
+        }
+        ContributionsView currentFragment = (ContributionsView) adapter.getCurrentFragment();
+
+        if (currentFragment.rv.getLayoutManager() instanceof LinearLayoutManager
+                && currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            position =
+                    ((LinearLayoutManager) currentFragment.rv.getLayoutManager())
+                            .findFirstCompletelyVisibleItemPosition() - 1;
+        } else if (currentFragment.rv.getLayoutManager() instanceof CatchStaggeredGridLayoutManager) {
+            int[] firstVisibleItems = null;
+            firstVisibleItems =
+                    ((CatchStaggeredGridLayoutManager) currentFragment.rv
+                            .getLayoutManager()).findFirstCompletelyVisibleItemPositions(
+                            firstVisibleItems);
+            if (firstVisibleItems != null && firstVisibleItems.length > 0) {
+                position = firstVisibleItems[0] - 1;
+            }
+        } else {
+            position =
+                    ((PreCachingLayoutManager) currentFragment.rv.getLayoutManager())
+                            .findFirstCompletelyVisibleItemPosition() - 1;
+        }
+        return position;
+
+    }
+
 }

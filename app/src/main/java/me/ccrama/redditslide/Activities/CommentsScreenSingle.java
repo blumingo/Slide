@@ -7,19 +7,20 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.KeyEvent;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import net.dean.jraw.models.Submission;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import me.ccrama.redditslide.Authentication;
@@ -45,13 +46,13 @@ import me.ccrama.redditslide.util.LogUtil;
  */
 public class CommentsScreenSingle extends BaseActivityAnim {
     CommentsScreenSinglePagerAdapter comments;
-    boolean              np;
-    private ViewPager pager;
-    private String    subreddit;
-    private String    name;
-    private String    context;
-    private int       contextNumber;
-    private Boolean   doneTranslucent = false;
+    boolean np;
+    private ViewPager2 pager;
+    private String subreddit;
+    private String name;
+    private String context;
+    private int contextNumber;
+    private Boolean doneTranslucent = false;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -62,12 +63,12 @@ public class CommentsScreenSingle extends BaseActivityAnim {
         }
     }
 
-    public static final String EXTRA_SUBREDDIT  = "subreddit";
-    public static final String EXTRA_CONTEXT    = "context";
-    public static final String EXTRA_CONTEXT_NUMBER    = "contextNumber";
+    public static final String EXTRA_SUBREDDIT = "subreddit";
+    public static final String EXTRA_CONTEXT = "context";
+    public static final String EXTRA_CONTEXT_NUMBER = "contextNumber";
     public static final String EXTRA_SUBMISSION = "submission";
-    public static final String EXTRA_NP         = "np";
-    public static final String EXTRA_LOADMORE   = "loadmore";
+    public static final String EXTRA_NP = "np";
+    public static final String EXTRA_LOADMORE = "loadmore";
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
@@ -77,7 +78,10 @@ public class CommentsScreenSingle extends BaseActivityAnim {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_VOLUME_UP:
                 case KeyEvent.KEYCODE_VOLUME_DOWN:
-                    return ((CommentPage) comments.getCurrentFragment()).onKeyDown(keyCode, event);
+                    Fragment mCurrentFragment = getCurrentFragment();
+                    if (mCurrentFragment != null && !(mCurrentFragment instanceof BlankFragment)) {
+                        return ((CommentPage) mCurrentFragment).onKeyDown(keyCode, event);
+                    }
                 default:
                     return super.dispatchKeyEvent(event);
             }
@@ -143,7 +147,7 @@ public class CommentsScreenSingle extends BaseActivityAnim {
 
                             if (Authentication.reddit.isAuthenticated()) {
                                 final Set<String> accounts =
-                                        Authentication.authentication.getStringSet("accounts", new HashSet<String>());
+                                        Authentication.authentication.getStringSet("accounts", new HashSet<>());
                                 if (accounts.contains(name)) { //convert to new system
                                     accounts.remove(name);
                                     accounts.add(name + ":" + Authentication.refresh);
@@ -154,7 +158,7 @@ public class CommentsScreenSingle extends BaseActivityAnim {
                                 Authentication.isLoggedIn = true;
                                 Reddit.notFirst = true;
                             }
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             new Authentication(getApplicationContext());
                         }
                     }
@@ -168,20 +172,20 @@ public class CommentsScreenSingle extends BaseActivityAnim {
         themeSystemBars(subreddit);
         setRecentBar(subreddit);
 
-        pager = (ViewPager) findViewById(R.id.content_view);
-        comments = new CommentsScreenSinglePagerAdapter(getSupportFragmentManager());
+        pager = (ViewPager2) findViewById(R.id.content_view);
+        comments = new CommentsScreenSinglePagerAdapter(this);
         pager.setAdapter(comments);
         pager.setBackgroundColor(Color.TRANSPARENT);
-        pager.setCurrentItem(1);
-        pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+        pager.setCurrentItem(1, false);
+        pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageScrolled(int position, float positionOffset,
-                    int positionOffsetPixels) {
+                                       int positionOffsetPixels) {
                 if (position == 0 && positionOffsetPixels == 0) {
                     finish();
                 }
                 if (position == 0
-                        && ((CommentsScreenSinglePagerAdapter) pager.getAdapter()).blankPage != null) {
+                        && ((CommentsScreenSinglePagerAdapter) Objects.requireNonNull(pager.getAdapter())).blankPage != null) {
                     ((CommentsScreenSinglePagerAdapter) pager.getAdapter()).blankPage.doOffset(positionOffset);
                     pager.setBackgroundColor(Palette.adjustAlpha(positionOffset * 0.7f));
                 }
@@ -189,7 +193,7 @@ public class CommentsScreenSingle extends BaseActivityAnim {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                if(!doneTranslucent) {
+                if (!doneTranslucent) {
                     doneTranslucent = true;
                     Utils.convertActivityToTranslucent(CommentsScreenSingle.this);
                 }
@@ -225,7 +229,7 @@ public class CommentsScreenSingle extends BaseActivityAnim {
                 locked = s.isLocked();
                 archived = s.isArchived();
                 contest = s.getDataNode().get("contest_mode").asBoolean();
-                if(s.getSubredditName() == null){
+                if (s.getSubredditName() == null) {
                     subreddit = "Promoted";
                 } else {
                     subreddit = s.getSubredditName();
@@ -234,19 +238,14 @@ public class CommentsScreenSingle extends BaseActivityAnim {
 
             } catch (Exception e) {
                 try {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            new AlertDialog.Builder(CommentsScreenSingle.this)
-                                    .setTitle(R.string.submission_not_found)
-                                    .setMessage(R.string.submission_not_found_msg)
-                                    .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                            finish())
-                                    .setOnDismissListener(dialog ->
-                                            finish())
-                                    .show();
-                        }
-                    });
+                    runOnUiThread(() -> new AlertDialog.Builder(CommentsScreenSingle.this)
+                            .setTitle(R.string.submission_not_found)
+                            .setMessage(R.string.submission_not_found_msg)
+                            .setPositiveButton(R.string.btn_ok, (dialog, which) ->
+                                    finish())
+                            .setOnDismissListener(dialog ->
+                                    finish())
+                            .show());
                 } catch (Exception ignored) {
 
                 }
@@ -257,31 +256,25 @@ public class CommentsScreenSingle extends BaseActivityAnim {
         }
     }
 
-    private class CommentsScreenSinglePagerAdapter extends FragmentStatePagerAdapter {
-        private Fragment      mCurrentFragment;
-        public  BlankFragment blankPage;
+    private Fragment getCurrentFragment() {
+        return comments.hashMap.get(pager.getCurrentItem());
+    }
 
-        CommentsScreenSinglePagerAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        }
+    private class CommentsScreenSinglePagerAdapter extends FragmentStateAdapter {
 
-        Fragment getCurrentFragment() {
-            return mCurrentFragment;
-        }
+        private final HashMap<Integer, Fragment> hashMap = new HashMap<>();
+        public BlankFragment blankPage;
 
-        @Override
-        public void setPrimaryItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-            if (mCurrentFragment != object) {
-                mCurrentFragment = (Fragment) object;
-            }
-            super.setPrimaryItem(container, position, object);
+        CommentsScreenSinglePagerAdapter(FragmentActivity fa) {
+            super(fa);
         }
 
         @NonNull
         @Override
-        public Fragment getItem(int i) {
+        public Fragment createFragment(int i) {
             if (i == 0) {
                 blankPage = new BlankFragment();
+                hashMap.put(i, blankPage);
                 return blankPage;
             } else {
                 Fragment f = new CommentPage();
@@ -307,13 +300,13 @@ public class CommentsScreenSingle extends BaseActivityAnim {
                 args.putBoolean("single", getIntent().getBooleanExtra(EXTRA_LOADMORE, true));
                 args.putBoolean("np", np);
                 f.setArguments(args);
-
+                hashMap.put(i, f);
                 return f;
             }
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return 2;
         }
     }

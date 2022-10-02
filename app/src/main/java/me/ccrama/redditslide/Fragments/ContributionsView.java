@@ -31,13 +31,21 @@ public class ContributionsView extends Fragment {
     private ContributionPosts posts;
     private String id;
     private String where;
+    public RecyclerView rv;
+    public ContributionAdapter getAdapter() {
+        return adapter;
+    }
+
+    public ContributionPosts getPosts() {
+        return posts;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_verticalcontent, container, false);
 
-        final RecyclerView rv = v.findViewById(R.id.vertical_content);
+        rv = v.findViewById(R.id.vertical_content);
 
         final PreCachingLayoutManager mLayoutManager = new PreCachingLayoutManager(getContext());
 
