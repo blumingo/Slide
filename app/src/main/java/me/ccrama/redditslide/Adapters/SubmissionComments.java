@@ -150,12 +150,10 @@ public class SubmissionComments {
 
     public JsonNode getSubmissionNode(SubmissionRequest request) {
         Map<String, String> args = new HashMap<>();
-        if (request.getDepth() != null)
-            args.put("depth", Integer.toString(request.getDepth()));
+        if (request.getDepth() != null) args.put("depth", Integer.toString(request.getDepth()));
         if (request.getContext() != null)
             args.put("context", Integer.toString(request.getContext()));
-        if (request.getLimit() != null)
-            args.put("limit", Integer.toString(request.getLimit()));
+        if (request.getLimit() != null) args.put("limit", Integer.toString(request.getLimit()));
         if (request.getFocus() != null && request.getFocus().length() >= 3 && !JrawUtils.isFullname(request.getFocus()))
             args.put("comment", request.getFocus());
         args.put("feature", "link_preview");
@@ -171,10 +169,7 @@ public class SubmissionComments {
             sort = CommentSort.CONFIDENCE;
         args.put("sort", sort.name().toLowerCase(Locale.ENGLISH));
 
-        RestResponse response = Authentication.reddit.execute(Authentication.reddit.request()
-                .path(String.format("/comments/%s", request.getId()))
-                .query(args)
-                .build());
+        RestResponse response = Authentication.reddit.execute(Authentication.reddit.request().path(String.format("/comments/%s", request.getId())).query(args).build());
 
 
         return response.getJson();
@@ -193,12 +188,11 @@ public class SubmissionComments {
 
         @Override
         public void onPostExecute(ArrayList<CommentObject> subs) {
-            if (page.isVisible() && submission != null) {
+            if (submission != null) {
                 refreshLayout.setRefreshing(false);
                 page.doRefresh(false);
                 if ((submission.isArchived() && !page.archived) || (submission.isLocked() && !page.locked) || (submission.getDataNode().get("contest_mode").asBoolean() && !page.contest))
                     page.doTopBarNotify(submission, adapter);
-
                 page.doData(reset);
                 LastComments.setComments(submission);
             }
@@ -229,7 +223,7 @@ public class SubmissionComments {
                 String currentOP = "";
 
                 for (CommentNode n : baseComment.walkTree()) {
-                    if(n.getDepth() == 1){
+                    if (n.getDepth() == 1) {
                         currentOP = n.getComment().getAuthor();
                     }
                     commentOPs.put(n.getComment().getId(), currentOP);

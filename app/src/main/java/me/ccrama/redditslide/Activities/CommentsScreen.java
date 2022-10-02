@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.Window;
 
 import androidx.annotation.NonNull;
@@ -112,10 +111,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
 
     @Override
     public void onCreate(Bundle savedInstance) {
-        popup = SettingValues.isPro
-                && getResources().getConfiguration().orientation
-                == Configuration.ORIENTATION_LANDSCAPE
-                && !SettingValues.fullCommentOverride;
+        popup = SettingValues.isPro && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE && !SettingValues.fullCommentOverride;
 
         seen = new ArrayList<>();
         if (popup) {
@@ -152,9 +148,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             firstPage = 0;
             //IS SINGLE POST
         } else {
-            OfflineSubreddit o = OfflineSubreddit.getSubreddit(
-                    multireddit == null ? baseSubreddit : "multi" + multireddit,
-                    OfflineSubreddit.currentid, !Authentication.didOnline, CommentsScreen.this);
+            OfflineSubreddit o = OfflineSubreddit.getSubreddit(multireddit == null ? baseSubreddit : "multi" + multireddit, OfflineSubreddit.currentid, !Authentication.didOnline, CommentsScreen.this);
             subredditPosts.getPosts().addAll(o.submissions);
             currentPosts.addAll(subredditPosts.getPosts());
 
@@ -168,10 +162,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                 }
             }
 
-            if (currentPosts.isEmpty()
-                    || currentPosts.size() < firstPage
-                    || currentPosts.get(firstPage) == null
-                    || firstPage < 0) {
+            if (currentPosts.isEmpty() || currentPosts.size() < firstPage || currentPosts.get(firstPage) == null || firstPage < 0) {
                 finish();
             } else {
                 this.updateSubredditAndSubmission(currentPosts.get(firstPage));
@@ -180,21 +171,19 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             pager = (ViewPager2) findViewById(R.id.content_view);
             comments = new CommentsScreenPagerAdapter(this);
             pager.setAdapter(comments);
-
+            pager.setOffscreenPageLimit(3);
             currentPage = firstPage;
             pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
 
 
                 @Override
-                public void onPageScrolled(int position, float positionOffset,
-                                           int positionOffsetPixels) {
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                     if (position <= firstPage && positionOffsetPixels == 0) {
                         finish();
                     }
                     if (position == firstPage && !popup) {
                         pager.setBackgroundColor(Palette.adjustAlpha(positionOffset * 0.7f));
                     }
-                    // loadComments();
                 }
 
                 @Override
@@ -229,26 +218,14 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
 
         if (!Reddit.appRestart.contains("tutorialSwipeComments")) {
             Intent i = new Intent(this, SwipeTutorial.class);
-            i.putExtra("subtitle",
-                    "Swipe from the left edge to exit comments.\n\nYou can swipe in the middle to get to the previous/next submission.");
+            i.putExtra("subtitle", "Swipe from the left edge to exit comments.\n\nYou can swipe in the middle to get to the previous/next submission.");
             startActivityForResult(i, 333);
         }
 
     }
 
-
     private Fragment getCurrentFragment() {
         return comments.hashMap.get(pager.getCurrentItem() - 1);
-    }
-
-    private void loadComments() {
-        Fragment mCurrentFragment = getCurrentFragment();
-        if (mCurrentFragment instanceof CommentPage) {
-            CommentPage commentPage = (CommentPage) mCurrentFragment;
-            if (!commentPage.loaded && commentPage.isAdded()) {
-                commentPage.doAdapter(true);
-            }
-        }
     }
 
     private void updateSubredditAndSubmission(Submission post) {
@@ -324,13 +301,11 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
                 String name = currentPosts.get(i).getFullName();
                 args.putString("id", name.substring(3));
                 args.putBoolean("archived", currentPosts.get(i).isArchived());
-                args.putBoolean("contest",
-                        currentPosts.get(i).getDataNode().get("contest_mode").asBoolean());
+                args.putBoolean("contest", currentPosts.get(i).getDataNode().get("contest_mode").asBoolean());
                 args.putBoolean("locked", currentPosts.get(i).isLocked());
                 args.putInt("page", i);
                 args.putString("subreddit", currentPosts.get(i).getSubredditName());
-                args.putString("baseSubreddit",
-                        multireddit == null ? baseSubreddit : "multi" + multireddit);
+                args.putString("baseSubreddit", multireddit == null ? baseSubreddit : "multi" + multireddit);
 
                 f.setArguments(args);
                 hashMap.put(i, f);
