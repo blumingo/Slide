@@ -409,17 +409,6 @@ public class Profile extends BaseActivityAnim {
                 }
                 i++;
             }
-            Map<String, String> dictionary = new HashMap<String, String>() {{
-                put("", "submitted");
-                put("Overview", "submitted");
-                put("Gilded", "gilded");
-                put("Upvoted", "liked");
-                put("Downvoted", "diskliked");
-                put("Hidden", "hidden");
-                put("Saved", "saved");
-            }};
-
-            where = dictionary.get(where);
             subreddit = "frontpage";
 
             Intent i2 = new Intent(Profile.this, Shadowbox.class);

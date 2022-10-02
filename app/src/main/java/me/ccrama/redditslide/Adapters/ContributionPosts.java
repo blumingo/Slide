@@ -12,7 +12,9 @@ import net.dean.jraw.paginators.TimePeriod;
 import net.dean.jraw.paginators.UserContributionPaginator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import me.ccrama.redditslide.Authentication;
 import me.ccrama.redditslide.BuildConfig;
@@ -23,6 +25,7 @@ import me.ccrama.redditslide.PostMatch;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionCache;
 import me.ccrama.redditslide.Synccit.MySynccitReadTask;
+import me.ccrama.redditslide.util.AsyncCallback;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.SortingUtil;
 
@@ -39,11 +42,19 @@ public class ContributionPosts extends GeneralPosts implements PostLoader {
     Context c;
     public List<Submission> submissionPosts;
     public boolean error;
-
+    Map<String, String> dictionary = new HashMap<String, String>() {{
+        put("", "submitted");
+        put("Overview", "submitted");
+        put("Gilded", "gilded");
+        put("Upvoted", "liked");
+        put("Downvoted", "diskliked");
+        put("Hidden", "hidden");
+        put("Saved", "saved");
+    }};
     public ContributionPosts(String subreddit, String where, Context c, SubmissionDisplay display) {
         submissionPosts = new ArrayList<>();
         this.subreddit = subreddit;
-        this.where = where;
+        this.where = dictionary.get(where);
         this.c = c;
         new ShadowLoadData(true, display, c).execute(subreddit);
     }
@@ -52,6 +63,7 @@ public class ContributionPosts extends GeneralPosts implements PostLoader {
         this.subreddit = subreddit;
         this.where = where;
     }
+
     public ContributionPosts(String subreddit, String where, Context c) {
         submissionPosts = new ArrayList<>();
         this.subreddit = subreddit;
@@ -179,11 +191,13 @@ public class ContributionPosts extends GeneralPosts implements PostLoader {
         final boolean reset;
         Context context;
         public int start;
+        private AsyncCallback listener;
 
         public ShadowLoadData(boolean reset, SubmissionDisplay display, Context context) {
             this.reset = reset;
             displayer = display;
             this.context = context;
+            this.listener = (AsyncCallback) context;
         }
 
 
@@ -227,6 +241,7 @@ public class ContributionPosts extends GeneralPosts implements PostLoader {
                 }
             }
             ContributionPosts.this.error = !success;
+            listener.completed();
         }
 
 

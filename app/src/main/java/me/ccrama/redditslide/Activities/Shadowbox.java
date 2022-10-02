@@ -1,5 +1,6 @@
 package me.ccrama.redditslide.Activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -32,11 +33,12 @@ import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.PostLoader;
 import me.ccrama.redditslide.R;
 import me.ccrama.redditslide.SettingValues;
+import me.ccrama.redditslide.util.AsyncCallback;
 
 /**
  * Created by ccrama on 9/17/2015.
  */
-public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
+public class Shadowbox extends FullScreenActivity implements SubmissionDisplay, AsyncCallback {
     public static final String EXTRA_PROFILE = "profile";
     public static final String EXTRA_PAGE = "page";
     public static final String EXTRA_SUBREDDIT = "subreddit";
@@ -53,9 +55,12 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
 
     @Override
     public void onBackPressed() {
-        MediaFragment mCurrentFragment = (MediaFragment) submissionsPager.hashMap.get(pager.getCurrentItem());
-        if (mCurrentFragment != null && mCurrentFragment.slideLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
-            mCurrentFragment.slideLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        Fragment mCurrentFragment = submissionsPager.hashMap.get(pager.getCurrentItem());
+        if (mCurrentFragment instanceof MediaFragment) {
+            MediaFragment mediaFragment = (MediaFragment) mCurrentFragment;
+            if (mediaFragment.slideLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                mediaFragment.slideLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+            }
         } else {
             super.onBackPressed();
         }
@@ -161,6 +166,17 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
     @Override
     public void onAdapterUpdated() {
         submissionsPager.notifyDataSetChanged();
+    }
+
+    @Override
+    public void completed() {
+        if (subredditPosts.getPosts().size() == 0) {
+            Intent i = new Intent(this, SwipeInformation.class);
+            i.putExtra("subtitle", where);
+            startActivityForResult(i, 333);
+            finish();
+        }
+
     }
 
 

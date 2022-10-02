@@ -1101,6 +1101,7 @@
     <string name="subreddit_name_tint">Subreddit name</string>
     <string name="login_failed_err_decline">Be sure you didn’t select ‘Decline’ on the last screen, and try again in a minute</string>
     <string name="tutorial_swipe_navigation">Swipe navigation</string>
+    <string name="swipe_information">No Posts Found.</string>
     <string name="tutorial_swipe_description">Swipe from the left edge to exit.\n\nThis applies to images, GIFs, albums, settings and more!</string>
     <string name="handling_browser">Web browser</string>
     <string name="submit_replies_to_inbox">Send replies to inbox</string>
