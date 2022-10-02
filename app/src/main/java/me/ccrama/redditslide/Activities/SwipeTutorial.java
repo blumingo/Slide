@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 import me.ccrama.redditslide.R;
+import me.ccrama.redditslide.Reddit;
 
 
 /**

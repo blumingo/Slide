@@ -23,11 +23,11 @@ public class TitleFull extends Fragment {
 
     private int i = 0;
     private Submission s;
-
+    String profile;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         ViewGroup rootView =
                 (ViewGroup) inflater.inflate(R.layout.submission_titlecard, container, false);
 
@@ -37,7 +37,9 @@ public class TitleFull extends Fragment {
         rootView.findViewById(R.id.desc).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (!profile.isEmpty()) {
+                    return;
+                }
                 Intent i2 = new Intent(getActivity(), CommentsScreen.class);
                 i2.putExtra(CommentsScreen.EXTRA_PAGE, i);
                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, sub);
@@ -56,6 +58,8 @@ public class TitleFull extends Fragment {
         Bundle bundle = this.getArguments();
         i = bundle.getInt("page", 0);
         sub = bundle.getString("sub");
+        if (getActivity() != null)
+            profile = ((Shadowbox) getActivity()).profile;
         if (((Shadowbox) getActivity()).subredditPosts == null
                 || ((Shadowbox) getActivity()).subredditPosts.getPosts().size() < bundle.getInt(
                 "page", 0)) {

@@ -92,6 +92,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         }
     }
 
+
     @Override
     public void onPause() {
         super.onPause();
@@ -109,6 +110,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         }
 
     }
+
 
     @Override
     public void onCreate(Bundle savedInstance) {
@@ -221,12 +223,12 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
 
         }
 
-        if (!Reddit.appRestart.contains("tutorialSwipeComments")) {
+        if (!Reddit.appRestart.contains("tutorialSwipeComment")) {
             Intent i = new Intent(this, SwipeTutorial.class);
-            i.putExtra("subtitle", "Swipe from the left edge to exit comments.\n\nYou can swipe in the middle to get to the previous/next submission.");
+            i.putExtra("subtitle",
+                    "Swipe from the left edge to exit comments.\n\nYou can swipe in the middle to get to the previous/next submission.");
             startActivityForResult(i, 333);
         }
-
     }
 
     private Fragment getCurrentFragment() {

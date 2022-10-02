@@ -420,8 +420,8 @@ public class Profile extends BaseActivityAnim {
             }};
 
             where = dictionary.get(where);
-            LogUtil.v("Chosen is " + where);
             subreddit = "frontpage";
+
             Intent i2 = new Intent(Profile.this, Shadowbox.class);
             i2.putExtra(Shadowbox.EXTRA_PAGE, getCurrentPage());
             i2.putExtra(Shadowbox.EXTRA_SUBREDDIT, subreddit);
