@@ -37,7 +37,6 @@ import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewpager.widget.ViewPager;
 
-import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
@@ -71,7 +70,6 @@ import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.SortingUtil;
 import me.ccrama.redditslide.util.TimeUtils;
 import uz.shift.colorpicker.LineColorPicker;
-import uz.shift.colorpicker.OnColorChangedListener;
 
 /**
  * Created by ccrama on 9/17/2015.
@@ -130,21 +128,10 @@ public class Profile extends BaseActivityAnim {
 
         pager = (ViewPager) findViewById(R.id.content_view);
         if (name.equals(Authentication.name))
-            setDataSet(new String[]{getString(R.string.profile_overview),
-                    getString(R.string.profile_comments),
-                    getString(R.string.profile_submitted),
-                    getString(R.string.profile_gilded),
-                    getString(R.string.profile_upvoted),
-                    getString(R.string.profile_downvoted),
-                    getString(R.string.profile_saved),
-                    getString(R.string.profile_hidden),
-                    getString(R.string.profile_history)
-            });
+            setDataSet(new String[]{getString(R.string.profile_overview), getString(R.string.profile_comments), getString(R.string.profile_submitted), getString(R.string.profile_gilded), getString(R.string.profile_upvoted), getString(R.string.profile_downvoted), getString(R.string.profile_saved), getString(R.string.profile_hidden), getString(R.string.profile_history)});
 
-        else setDataSet(new String[]{getString(R.string.profile_overview),
-                getString(R.string.profile_comments),
-                getString(R.string.profile_submitted),
-                getString(R.string.profile_gilded)});
+        else
+            setDataSet(new String[]{getString(R.string.profile_overview), getString(R.string.profile_comments), getString(R.string.profile_submitted), getString(R.string.profile_gilded)});
 
         new getProfile().execute(name);
 
@@ -152,10 +139,7 @@ public class Profile extends BaseActivityAnim {
             @Override
             public void onPageSelected(int position) {
                 isSavedView = position == 6;
-                findViewById(R.id.header).animate()
-                        .translationY(0)
-                        .setInterpolator(new LinearInterpolator())
-                        .setDuration(180);
+                findViewById(R.id.header).animate().translationY(0).setInterpolator(new LinearInterpolator()).setDuration(180);
                 if (sortItem != null) {
                     sortItem.setVisible(position < 3);
                 }
@@ -189,30 +173,15 @@ public class Profile extends BaseActivityAnim {
     private void doClick() {
         if (account == null) {
             try {
-                new AlertDialog.Builder(Profile.this)
-                        .setTitle(R.string.profile_err_title)
-                        .setMessage(R.string.profile_err_msg)
-                        .setPositiveButton(R.string.btn_ok, null)
-                        .setCancelable(false)
-                        .setOnDismissListener(dialog ->
-                                onBackPressed())
-                        .show();
+                new AlertDialog.Builder(Profile.this).setTitle(R.string.profile_err_title).setMessage(R.string.profile_err_msg).setPositiveButton(R.string.btn_ok, null).setCancelable(false).setOnDismissListener(dialog -> onBackPressed()).show();
             } catch (WindowManager.BadTokenException e) {
                 Log.w(LogUtil.getTag(), "Activity already in background, dialog not shown " + e);
             }
             return;
         }
-        if (account.getDataNode().has("is_suspended") && account.getDataNode().get("is_suspended").asBoolean()
-                && !name.equalsIgnoreCase(Authentication.name)) {
+        if (account.getDataNode().has("is_suspended") && account.getDataNode().get("is_suspended").asBoolean() && !name.equalsIgnoreCase(Authentication.name)) {
             try {
-                new AlertDialog.Builder(Profile.this)
-                        .setTitle(R.string.account_suspended)
-                        .setCancelable(false)
-                        .setPositiveButton(R.string.btn_ok, (dialog, whichButton) ->
-                                finish())
-                        .setOnDismissListener(dialog ->
-                                finish())
-                        .show();
+                new AlertDialog.Builder(Profile.this).setTitle(R.string.account_suspended).setCancelable(false).setPositiveButton(R.string.btn_ok, (dialog, whichButton) -> finish()).setOnDismissListener(dialog -> finish()).show();
             } catch (WindowManager.BadTokenException e) {
                 Log.w(LogUtil.getTag(), "Activity already in background, dialog not shown " + e);
             }
@@ -222,12 +191,9 @@ public class Profile extends BaseActivityAnim {
     private void setDataSet(String[] data) {
         usedArray = data;
         adapter = new ProfilePagerAdapter(getSupportFragmentManager());
-
         pager.setAdapter(adapter);
         pager.setOffscreenPageLimit(1);
         tabs.setupWithViewPager(pager);
-
-
     }
 
     private class getProfile extends AsyncTask<String, Void, Void> {
@@ -303,7 +269,6 @@ public class Profile extends BaseActivityAnim {
                         place = "overview";
                 }
                 args.putString("where", place);
-
                 f.setArguments(args);
                 hashMap.put(i, f);
                 return f;
@@ -333,47 +298,45 @@ public class Profile extends BaseActivityAnim {
         for (Spannable s : base) {
             MenuItem m = popup.getMenu().add(s);
         }
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                LogUtil.v("Chosen is " + item.getOrder());
-                int i = 0;
-                for (Spannable s : base) {
-                    if (s.equals(item.getTitle())) {
-                        break;
-                    }
-                    i++;
+        popup.setOnMenuItemClickListener(item -> {
+            LogUtil.v("Chosen is " + item.getOrder());
+            int i = 0;
+            for (Spannable s : base) {
+                if (s.equals(item.getTitle())) {
+                    break;
                 }
-                switch (i) {
-                    case 0:
-                        profSort = (Sorting.HOT);
-                        break;
-                    case 1:
-                        profSort = (Sorting.NEW);
-                        break;
-                    case 2:
-                        profSort = (Sorting.RISING);
-                        break;
-                    case 3:
-                        profSort = (Sorting.TOP);
-                        openPopupTime();
-                        return true;
-                    case 4:
-                        profSort = (Sorting.CONTROVERSIAL);
-                        openPopupTime();
-                        return true;
-                }
-
-                SortingUtil.sorting.put(name.toLowerCase(Locale.ENGLISH), profSort);
-
-                int current = pager.getCurrentItem();
-                ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
-                pager.setAdapter(adapter);
-                pager.setOffscreenPageLimit(1);
-
-                tabs.setupWithViewPager(pager);
-                pager.setCurrentItem(current);
-                return true;
+                i++;
             }
+            switch (i) {
+                case 0:
+                    profSort = (Sorting.HOT);
+                    break;
+                case 1:
+                    profSort = (Sorting.NEW);
+                    break;
+                case 2:
+                    profSort = (Sorting.RISING);
+                    break;
+                case 3:
+                    profSort = (Sorting.TOP);
+                    openPopupTime();
+                    return true;
+                case 4:
+                    profSort = (Sorting.CONTROVERSIAL);
+                    openPopupTime();
+                    return true;
+            }
+
+            SortingUtil.sorting.put(name.toLowerCase(Locale.ENGLISH), profSort);
+
+            int current = pager.getCurrentItem();
+            ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
+            pager.setAdapter(adapter);
+            pager.setOffscreenPageLimit(1);
+
+            tabs.setupWithViewPager(pager);
+            pager.setCurrentItem(current);
+            return true;
         });
         popup.show();
     }
@@ -384,49 +347,88 @@ public class Profile extends BaseActivityAnim {
         for (Spannable s : base) {
             MenuItem m = popup.getMenu().add(s);
         }
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                LogUtil.v("Chosen is " + item.getOrder());
-                int i = 0;
-                for (Spannable s : base) {
-                    if (s.equals(item.getTitle())) {
-                        break;
-                    }
-                    i++;
+        popup.setOnMenuItemClickListener(item -> {
+            LogUtil.v("Chosen is " + item.getOrder());
+            int i = 0;
+            for (Spannable s : base) {
+                if (s.equals(item.getTitle())) {
+                    break;
                 }
-                switch (i) {
-                    case 0:
-                        profTime = (TimePeriod.HOUR);
-                        break;
-                    case 1:
-                        profTime = (TimePeriod.DAY);
-                        break;
-                    case 2:
-                        profTime = (TimePeriod.WEEK);
-                        break;
-                    case 3:
-                        profTime = (TimePeriod.MONTH);
-                        break;
-                    case 4:
-                        profTime = (TimePeriod.YEAR);
-                        break;
-                    case 5:
-                        profTime = (TimePeriod.ALL);
-                        break;
-                }
-
-                SortingUtil.sorting.put(name.toLowerCase(Locale.ENGLISH), profSort);
-                SortingUtil.times.put(name.toLowerCase(Locale.ENGLISH), profTime);
-
-                int current = pager.getCurrentItem();
-                ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
-                pager.setAdapter(adapter);
-                pager.setOffscreenPageLimit(1);
-
-                tabs.setupWithViewPager(pager);
-                pager.setCurrentItem(current);
-                return true;
+                i++;
             }
+            switch (i) {
+                case 0:
+                    profTime = (TimePeriod.HOUR);
+                    break;
+                case 1:
+                    profTime = (TimePeriod.DAY);
+                    break;
+                case 2:
+                    profTime = (TimePeriod.WEEK);
+                    break;
+                case 3:
+                    profTime = (TimePeriod.MONTH);
+                    break;
+                case 4:
+                    profTime = (TimePeriod.YEAR);
+                    break;
+                case 5:
+                    profTime = (TimePeriod.ALL);
+                    break;
+            }
+
+            SortingUtil.sorting.put(name.toLowerCase(Locale.ENGLISH), profSort);
+            SortingUtil.times.put(name.toLowerCase(Locale.ENGLISH), profTime);
+
+            int current = pager.getCurrentItem();
+            ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
+            pager.setAdapter(adapter);
+            pager.setOffscreenPageLimit(1);
+
+            tabs.setupWithViewPager(pager);
+            pager.setCurrentItem(current);
+            return true;
+        });
+        popup.show();
+    }
+
+
+    public void openShadowBoxPopup(String[] values) {
+        PopupMenu popup = new PopupMenu(Profile.this, findViewById(R.id.anchor), Gravity.RIGHT);
+        for (String v : values) {
+            MenuItem m = popup.getMenu().add(v);
+        }
+        popup.setOnMenuItemClickListener(item -> {
+
+            int i = 0;
+            String where = "";
+            for (String s : values) {
+                if (s.contentEquals(item.getTitle())) {
+                    where = item.getTitle().toString();
+                    break;
+                }
+                i++;
+            }
+            Map<String, String> dictionary = new HashMap<String, String>() {{
+                put("", "submitted");
+                put("Overview", "submitted");
+                put("Gilded", "gilded");
+                put("Upvoted", "liked");
+                put("Downvoted", "diskliked");
+                put("Hidden", "hidden");
+                put("Saved", "saved");
+            }};
+
+            where = dictionary.get(where);
+            LogUtil.v("Chosen is " + where);
+            subreddit = "frontpage";
+            Intent i2 = new Intent(Profile.this, Shadowbox.class);
+            i2.putExtra(Shadowbox.EXTRA_PAGE, getCurrentPage());
+            i2.putExtra(Shadowbox.EXTRA_SUBREDDIT, subreddit);
+            i2.putExtra(Shadowbox.EXTRA_PROFILE, name);
+            i2.putExtra(Shadowbox.EXTRA_WHERE, where);
+            startActivity(i2);
+            return true;
         });
         popup.show();
     }
@@ -466,11 +468,7 @@ public class Profile extends BaseActivityAnim {
 
                     @Override
                     public void onPreExecute() {
-                        d = new MaterialDialog.Builder(Profile.this)
-                                .progress(true, 100)
-                                .content(R.string.misc_please_wait)
-                                .title(R.string.profile_category_loading)
-                                .show();
+                        d = new MaterialDialog.Builder(Profile.this).progress(true, 100).content(R.string.misc_please_wait).title(R.string.profile_category_loading).show();
                     }
 
                     @Override
@@ -491,25 +489,18 @@ public class Profile extends BaseActivityAnim {
                     @Override
                     public void onPostExecute(final List<String> data) {
                         try {
-                            new MaterialDialog.Builder(Profile.this).items(data)
-                                    .title(R.string.profile_category_select)
-                                    .itemsCallback(new MaterialDialog.ListCallback() {
-                                        @Override
-                                        public void onSelection(MaterialDialog dialog, final View itemView, int which, CharSequence text) {
-                                            final String t = data.get(which);
-                                            if (which == 0)
-                                                category = null;
-                                            else
-                                                category = t;
-                                            int current = pager.getCurrentItem();
-                                            ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
-                                            pager.setAdapter(adapter);
-                                            pager.setOffscreenPageLimit(1);
+                            new MaterialDialog.Builder(Profile.this).items(data).title(R.string.profile_category_select).itemsCallback((dialog, itemView, which, text) -> {
+                                final String t = data.get(which);
+                                if (which == 0) category = null;
+                                else category = t;
+                                int current = pager.getCurrentItem();
+                                ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
+                                pager.setAdapter(adapter);
+                                pager.setOffscreenPageLimit(1);
 
-                                            tabs.setupWithViewPager(pager);
-                                            pager.setCurrentItem(current);
-                                        }
-                                    }).show();
+                                tabs.setupWithViewPager(pager);
+                                pager.setCurrentItem(current);
+                            }).show();
                             if (d != null) {
                                 d.dismiss();
                             }
@@ -526,28 +517,19 @@ public class Profile extends BaseActivityAnim {
                     final TextView title = dialoglayout.findViewById(R.id.title);
                     title.setText(name);
 
-                    if (account.getDataNode().has("is_employee")
-                            && account.getDataNode().get("is_employee").asBoolean()) {
+                    if (account.getDataNode().has("is_employee") && account.getDataNode().get("is_employee").asBoolean()) {
                         SpannableStringBuilder admin = new SpannableStringBuilder("[A]");
-                        admin.setSpan(new RelativeSizeSpan(.67f), 0, admin.length(),
-                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        admin.setSpan(new RelativeSizeSpan(.67f), 0, admin.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                         title.append(" ");
                         title.append(admin);
                     }
 
-                    dialoglayout.findViewById(R.id.share).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Reddit.defaultShareText(getString(R.string.profile_share, name),
-                                    "https://www.reddit.com/u/" + name, Profile.this);
-                        }
-                    });
+                    dialoglayout.findViewById(R.id.share).setOnClickListener(v -> Reddit.defaultShareText(getString(R.string.profile_share, name), "https://www.reddit.com/u/" + name, Profile.this));
 
                     final int currentColor = Palette.getColorUser(name);
                     title.setBackgroundColor(currentColor);
 
-                    String info = getString(R.string.profile_age,
-                            TimeUtils.getTimeSince(account.getCreated().getTime(), Profile.this));
+                    String info = getString(R.string.profile_age, TimeUtils.getTimeSince(account.getCreated().getTime(), Profile.this));
                /*todo better if (account.hasGold() &&account.getDataNode().has("gold_expiration") ) {
                     Calendar c = Calendar.getInstance();
                     c.setTimeInMillis(account.getDataNode().get("gold_expiration").asLong());
@@ -566,46 +548,32 @@ public class Profile extends BaseActivityAnim {
                     ((TextView) dialoglayout.findViewById(R.id.tagged)).setText(tag);
                     LinearLayout l = dialoglayout.findViewById(R.id.trophies_inner);
 
-                    dialoglayout.findViewById(R.id.tag).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            MaterialDialog.Builder b = new MaterialDialog.Builder(Profile.this)
-                                    .title(getString(R.string.profile_tag_set, name))
-                                    .input(getString(R.string.profile_tag), UserTags.getUserTag(name), false,
-                                            (dialog, input) -> {
-                                            })
-                                    .positiveText(R.string.profile_btn_tag)
-                                    .neutralText(R.string.btn_cancel);
+                    dialoglayout.findViewById(R.id.tag).setOnClickListener(v -> {
+                        MaterialDialog.Builder b = new MaterialDialog.Builder(Profile.this).title(getString(R.string.profile_tag_set, name)).input(getString(R.string.profile_tag), UserTags.getUserTag(name), false, (dialog, input) -> {
+                        }).positiveText(R.string.profile_btn_tag).neutralText(R.string.btn_cancel);
 
-                            if (UserTags.isUserTagged(name)) {
-                                b.negativeText(R.string.profile_btn_untag);
-                            }
-                            b.onPositive(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(MaterialDialog dialog, DialogAction which) {
-                                    UserTags.setUserTag(name, dialog.getInputEditText().getText().toString());
-                                    String tag = UserTags.getUserTag(name);
-                                    if (tag.isEmpty()) {
-                                        tag = getString(R.string.profile_tag_user);
-                                    } else {
-                                        tag = getString(R.string.profile_tag_user_existing, tag);
-                                    }
-                                    ((TextView) dialoglayout.findViewById(R.id.tagged)).setText(tag);
-                                }
-                            }).onNeutral(null).onNegative(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(MaterialDialog dialog, DialogAction which) {
-                                    UserTags.removeUserTag(name);
-                                    String tag = UserTags.getUserTag(name);
-                                    if (tag.isEmpty()) {
-                                        tag = getString(R.string.profile_tag_user);
-                                    } else {
-                                        tag = getString(R.string.profile_tag_user_existing, tag);
-                                    }
-                                    ((TextView) dialoglayout.findViewById(R.id.tagged)).setText(tag);
-                                }
-                            }).show();
+                        if (UserTags.isUserTagged(name)) {
+                            b.negativeText(R.string.profile_btn_untag);
                         }
+                        b.onPositive((dialog, which) -> {
+                            UserTags.setUserTag(name, dialog.getInputEditText().getText().toString());
+                            String tag1 = UserTags.getUserTag(name);
+                            if (tag1.isEmpty()) {
+                                tag1 = getString(R.string.profile_tag_user);
+                            } else {
+                                tag1 = getString(R.string.profile_tag_user_existing, tag1);
+                            }
+                            ((TextView) dialoglayout.findViewById(R.id.tagged)).setText(tag1);
+                        }).onNeutral(null).onNegative((dialog, which) -> {
+                            UserTags.removeUserTag(name);
+                            String tag12 = UserTags.getUserTag(name);
+                            if (tag12.isEmpty()) {
+                                tag12 = getString(R.string.profile_tag_user);
+                            } else {
+                                tag12 = getString(R.string.profile_tag_user_existing, tag12);
+                            }
+                            ((TextView) dialoglayout.findViewById(R.id.tagged)).setText(tag12);
+                        }).show();
                     });
 
                     if (trophyCase.isEmpty()) {
@@ -616,26 +584,16 @@ public class Profile extends BaseActivityAnim {
                             ((Reddit) getApplicationContext()).getImageLoader().displayImage(t.getIcon(), ((ImageView) view.findViewById(R.id.image)));
                             ((TextView) view.findViewById(R.id.trophyTitle)).setText(t.getFullName());
                             if (t.getAboutUrl() != null && !t.getAboutUrl().equalsIgnoreCase("null")) {
-                                view.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        LinkUtil.openUrl(LinkUtil.formatURL(t.getAboutUrl()).toString(),
-                                                Palette.getColorUser(account.getFullName()),
-                                                Profile.this);
-                                    }
-                                });
+                                view.setOnClickListener(v -> LinkUtil.openUrl(LinkUtil.formatURL(t.getAboutUrl()).toString(), Palette.getColorUser(account.getFullName()), Profile.this));
                             }
                             l.addView(view);
                         }
                     }
                     if (Authentication.isLoggedIn) {
-                        dialoglayout.findViewById(R.id.pm).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Intent i = new Intent(Profile.this, SendMessage.class);
-                                i.putExtra(SendMessage.EXTRA_NAME, name);
-                                startActivity(i);
-                            }
+                        dialoglayout.findViewById(R.id.pm).setOnClickListener(v -> {
+                            Intent i = new Intent(Profile.this, SendMessage.class);
+                            i.putExtra(SendMessage.EXTRA_NAME, name);
+                            startActivity(i);
                         });
 
                         friend = account.isFriend();
@@ -645,106 +603,84 @@ public class Profile extends BaseActivityAnim {
                             ((TextView) dialoglayout.findViewById(R.id.friend)).setText(R.string.profile_add_friend);
 
                         }
-                        dialoglayout.findViewById(R.id.friend_body).setOnClickListener(new View.OnClickListener() {
+                        dialoglayout.findViewById(R.id.friend_body).setOnClickListener(v -> new AsyncTask<Void, Void, Void>() {
                             @Override
-                            public void onClick(View v) {
-                                new AsyncTask<Void, Void, Void>() {
-                                    @Override
-                                    protected Void doInBackground(Void... params) {
-                                        if (friend) {
-                                            try {
-                                                new AccountManager(Authentication.reddit).deleteFriend(name);
-                                            } catch (Exception ignored) {
-                                                //Will throw java.lang.IllegalStateException: No Content-Type header was found, but it still works.
-                                            }
-                                            friend = false;
-
-                                        } else {
-                                            new AccountManager(Authentication.reddit).updateFriend(name);
-                                            friend = true;
-
-
-                                        }
-                                        return null;
+                            protected Void doInBackground(Void... params) {
+                                if (friend) {
+                                    try {
+                                        new AccountManager(Authentication.reddit).deleteFriend(name);
+                                    } catch (Exception ignored) {
+                                        //Will throw java.lang.IllegalStateException: No Content-Type header was found, but it still works.
                                     }
+                                    friend = false;
 
-                                    @Override
-                                    public void onPostExecute(Void voids) {
-                                        if (friend) {
-                                            ((TextView) dialoglayout.findViewById(R.id.friend)).setText(R.string.profile_remove_friend);
-                                        } else {
-                                            ((TextView) dialoglayout.findViewById(R.id.friend)).setText(R.string.profile_add_friend);
-                                        }
-                                    }
-                                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    new AccountManager(Authentication.reddit).updateFriend(name);
+                                    friend = true;
 
+
+                                }
+                                return null;
                             }
-                        });
 
-                        dialoglayout.findViewById(R.id.block_body).setOnClickListener(new View.OnClickListener() {
                             @Override
-                            public void onClick(View v) {
-                                new AsyncTask<Void, Void, Boolean>() {
-                                    @Override
-                                    protected Boolean doInBackground(Void... params) {
-                                        Map<String, String> map = new HashMap();
-                                        map.put("account_id", "t2_" + account.getId());
-                                        try {
-                                            Authentication.reddit.execute(Authentication.reddit.request().post(map)
-                                                    .path("/api/block_user")
-                                                    .build());
-                                        } catch (Exception ex) {
-                                            return false;
-                                        }
-                                        return true;
-                                    }
-
-                                    @Override
-                                    public void onPostExecute(Boolean blocked) {
-                                        if (!blocked) {
-                                            Toast.makeText(getBaseContext(), getString(R.string.err_block_user), Toast.LENGTH_LONG).show();
-                                        } else {
-                                            Toast.makeText(getBaseContext(), getString(R.string.success_block_user), Toast.LENGTH_LONG).show();
-                                        }
-                                    }
-                                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                            public void onPostExecute(Void voids) {
+                                if (friend) {
+                                    ((TextView) dialoglayout.findViewById(R.id.friend)).setText(R.string.profile_remove_friend);
+                                } else {
+                                    ((TextView) dialoglayout.findViewById(R.id.friend)).setText(R.string.profile_add_friend);
+                                }
                             }
-                        });
+                        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR));
+
+                        dialoglayout.findViewById(R.id.block_body).setOnClickListener(v -> new AsyncTask<Void, Void, Boolean>() {
+                            @Override
+                            protected Boolean doInBackground(Void... params) {
+                                Map<String, String> map = new HashMap<>();
+                                map.put("account_id", "t2_" + account.getId());
+                                try {
+                                    Authentication.reddit.execute(Authentication.reddit.request().post(map).path("/api/block_user").build());
+                                } catch (Exception ex) {
+                                    return false;
+                                }
+                                return true;
+                            }
+
+                            @Override
+                            public void onPostExecute(Boolean blocked) {
+                                if (!blocked) {
+                                    Toast.makeText(getBaseContext(), getString(R.string.err_block_user), Toast.LENGTH_LONG).show();
+                                } else {
+                                    Toast.makeText(getBaseContext(), getString(R.string.success_block_user), Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR));
                     } else {
                         dialoglayout.findViewById(R.id.pm).setVisibility(View.GONE);
                     }
 
-                    dialoglayout.findViewById(R.id.multi_body).setOnClickListener(
-                            new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    Intent inte = new Intent(Profile.this, MultiredditOverview.class);
-                                    inte.putExtra(EXTRA_PROFILE, name);
-                                    Profile.this.startActivity(inte);
-                                }
-                            }
-                    );
+                    dialoglayout.findViewById(R.id.multi_body).setOnClickListener(v -> {
+                        Intent inte = new Intent(Profile.this, MultiredditOverview.class);
+                        inte.putExtra(EXTRA_PROFILE, name);
+                        Profile.this.startActivity(inte);
+                    });
 
                     final View body = dialoglayout.findViewById(R.id.body2);
                     body.setVisibility(View.INVISIBLE);
 
                     final View center = dialoglayout.findViewById(R.id.colorExpandFrom);
-                    dialoglayout.findViewById(R.id.color).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            int cx = center.getWidth() / 2;
-                            int cy = center.getHeight() / 2;
+                    dialoglayout.findViewById(R.id.color).setOnClickListener(v -> {
+                        int cx = center.getWidth() / 2;
+                        int cy = center.getHeight() / 2;
 
-                            int finalRadius = Math.max(body.getWidth(), body.getHeight());
+                        int finalRadius = Math.max(body.getWidth(), body.getHeight());
 
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                Animator anim =
-                                        ViewAnimationUtils.createCircularReveal(body, cx, cy, 0, finalRadius);
-                                body.setVisibility(View.VISIBLE);
-                                anim.start();
-                            } else {
-                                body.setVisibility(View.VISIBLE);
-                            }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            Animator anim = ViewAnimationUtils.createCircularReveal(body, cx, cy, 0, finalRadius);
+                            body.setVisibility(View.VISIBLE);
+                            anim.start();
+                        } else {
+                            body.setVisibility(View.VISIBLE);
                         }
                     });
 
@@ -753,13 +689,10 @@ public class Profile extends BaseActivityAnim {
 
                     colorPicker.setColors(ColorPreferences.getBaseColors(Profile.this));
 
-                    colorPicker.setOnColorChangedListener(new OnColorChangedListener() {
-                        @Override
-                        public void onColorChanged(int c) {
+                    colorPicker.setOnColorChangedListener(c -> {
 
-                            colorPicker2.setColors(ColorPreferences.getColors(getBaseContext(), c));
-                            colorPicker2.setSelectedColor(c);
-                        }
+                        colorPicker2.setColors(ColorPreferences.getColors(getBaseContext(), c));
+                        colorPicker2.setSelectedColor(c);
                     });
 
                     for (int i : colorPicker.getColors()) {
@@ -773,18 +706,14 @@ public class Profile extends BaseActivityAnim {
                         }
                     }
 
-                    colorPicker2.setOnColorChangedListener(new OnColorChangedListener() {
-                        @Override
-                        public void onColorChanged(int i) {
-                            findViewById(R.id.header).setBackgroundColor(colorPicker2.getColor());
-                            if (mToolbar != null)
-                                mToolbar.setBackgroundColor(colorPicker2.getColor());
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                Window window = getWindow();
-                                window.setStatusBarColor(Palette.getDarkerColor(colorPicker2.getColor()));
-                            }
-                            title.setBackgroundColor(colorPicker2.getColor());
+                    colorPicker2.setOnColorChangedListener(i -> {
+                        findViewById(R.id.header).setBackgroundColor(colorPicker2.getColor());
+                        if (mToolbar != null) mToolbar.setBackgroundColor(colorPicker2.getColor());
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            Window window = getWindow();
+                            window.setStatusBarColor(Palette.getDarkerColor(colorPicker2.getColor()));
                         }
+                        title.setBackgroundColor(colorPicker2.getColor());
                     });
 
                     {
@@ -802,8 +731,7 @@ public class Profile extends BaseActivityAnim {
                                 int initialRadius = body.getWidth();
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-                                    Animator anim =
-                                            ViewAnimationUtils.createCircularReveal(body, cx, cy, initialRadius, 0);
+                                    Animator anim = ViewAnimationUtils.createCircularReveal(body, cx, cy, initialRadius, 0);
 
                                     anim.addListener(new AnimatorListenerAdapter() {
                                         @Override
@@ -841,8 +769,7 @@ public class Profile extends BaseActivityAnim {
                                 int initialRadius = body.getWidth();
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-                                    Animator anim =
-                                            ViewAnimationUtils.createCircularReveal(body, cx, cy, initialRadius, 0);
+                                    Animator anim = ViewAnimationUtils.createCircularReveal(body, cx, cy, initialRadius, 0);
 
                                     anim.addListener(new AnimatorListenerAdapter() {
                                         @Override
@@ -868,30 +795,27 @@ public class Profile extends BaseActivityAnim {
                     ((TextView) dialoglayout.findViewById(R.id.linkkarma)).setText(String.format(Locale.getDefault(), "%d", account.getLinkKarma()));
                     ((TextView) dialoglayout.findViewById(R.id.totalKarma)).setText(String.format(Locale.getDefault(), "%d", account.getCommentKarma() + account.getLinkKarma()));
 
-                    new AlertDialog.Builder(Profile.this)
-                            .setOnDismissListener(dialogInterface -> {
-                                findViewById(R.id.header).setBackgroundColor(currentColor);
-                                if (mToolbar != null)
-                                    mToolbar.setBackgroundColor(currentColor);
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                    Window window = getWindow();
-                                    window.setStatusBarColor(Palette.getDarkerColor(currentColor));
-                                }
-                            })
-                            .setView(dialoglayout)
-                            .show();
+                    new AlertDialog.Builder(Profile.this).setOnDismissListener(dialogInterface -> {
+                        findViewById(R.id.header).setBackgroundColor(currentColor);
+                        if (mToolbar != null) mToolbar.setBackgroundColor(currentColor);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            Window window = getWindow();
+                            window.setStatusBarColor(Palette.getDarkerColor(currentColor));
+                        }
+                    }).setView(dialoglayout).show();
                 }
                 return true;
             case (R.id.action_shadowbox):
+                boolean isOwnAccount = name.equals(Authentication.name);
+                String[] values;
 
-                subreddit = "frontpage";
-                Intent i2 = new Intent(this, Shadowbox.class);
-                i2.putExtra(Shadowbox.EXTRA_PAGE, getCurrentPage());
-                i2.putExtra(Shadowbox.EXTRA_SUBREDDIT, subreddit);
-                i2.putExtra(Shadowbox.EXTRA_PROFILE, name);
-                startActivity(i2);
+                if (isOwnAccount) {
+                    values = new String[]{"Overview", "Saved", "Upvoted", "Downvoted", "Gilded", "Hidden"};
+                } else {
+                    values = new String[]{"Overview", "Gilded"};
+                }
 
-
+                openShadowBoxPopup(values);
                 return true;
             case (R.id.sort):
                 openPopup();
@@ -908,24 +832,16 @@ public class Profile extends BaseActivityAnim {
         }
         ContributionsView currentFragment = (ContributionsView) adapter.getCurrentFragment();
 
-        if (currentFragment.rv.getLayoutManager() instanceof LinearLayoutManager
-                && currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
-            position =
-                    ((LinearLayoutManager) currentFragment.rv.getLayoutManager())
-                            .findFirstCompletelyVisibleItemPosition() - 1;
+        if (currentFragment.rv.getLayoutManager() instanceof LinearLayoutManager && currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            position = ((LinearLayoutManager) currentFragment.rv.getLayoutManager()).findFirstCompletelyVisibleItemPosition() - 1;
         } else if (currentFragment.rv.getLayoutManager() instanceof CatchStaggeredGridLayoutManager) {
             int[] firstVisibleItems = null;
-            firstVisibleItems =
-                    ((CatchStaggeredGridLayoutManager) currentFragment.rv
-                            .getLayoutManager()).findFirstCompletelyVisibleItemPositions(
-                            firstVisibleItems);
+            firstVisibleItems = ((CatchStaggeredGridLayoutManager) currentFragment.rv.getLayoutManager()).findFirstCompletelyVisibleItemPositions(firstVisibleItems);
             if (firstVisibleItems != null && firstVisibleItems.length > 0) {
                 position = firstVisibleItems[0] - 1;
             }
         } else {
-            position =
-                    ((PreCachingLayoutManager) currentFragment.rv.getLayoutManager())
-                            .findFirstCompletelyVisibleItemPosition() - 1;
+            position = ((PreCachingLayoutManager) currentFragment.rv.getLayoutManager()).findFirstCompletelyVisibleItemPosition() - 1;
         }
         return position;
 

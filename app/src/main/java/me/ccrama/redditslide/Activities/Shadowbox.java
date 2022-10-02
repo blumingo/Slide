@@ -41,6 +41,7 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
     public static final String EXTRA_PAGE = "page";
     public static final String EXTRA_SUBREDDIT = "subreddit";
     public static final String EXTRA_MULTIREDDIT = "multireddit";
+    public static final String EXTRA_WHERE = "where";
     public PostLoader subredditPosts;
     public String subreddit;
     int firstPage;
@@ -69,7 +70,7 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
         subreddit = getIntent().getExtras().getString(EXTRA_SUBREDDIT);
         String multireddit = getIntent().getExtras().getString(EXTRA_MULTIREDDIT);
         String profile = getIntent().getExtras().getString(EXTRA_PROFILE, "");
-        String where = "submitted";
+        String where = getIntent().getExtras().getString(EXTRA_WHERE, "submitted");
         boolean isProfile = false;
         if (multireddit != null) {
             subredditPosts = new MultiredditPosts(multireddit, profile);
@@ -97,7 +98,6 @@ public class Shadowbox extends FullScreenActivity implements SubmissionDisplay {
             subredditPosts.getPosts().addAll(submissions.submissions);
         }
         count = subredditPosts.getPosts().size();
-
 
         pager = (ViewPager2) findViewById(R.id.content_view);
         submissionsPager = new ShadowboxPagerAdapter(this);
