@@ -444,9 +444,18 @@ public class GifUtils {
             String url;
             if (Objects.equals(host, "redgifs")) {
                 url = "https://api." + host + ".com/v2/gifs" + name;
+                String token = getRedGifsTempToken().get("token").getAsString();
+                return HttpUtil.getJsonObjectWithToken(client, gson, url, token);
+
             } else {
                 url = "https://api." + host + ".com/v1/gfycats" + name;
+                return HttpUtil.getJsonObject(client, gson, url);
             }
+        }
+
+        JsonObject getRedGifsTempToken () {
+            String url;
+            url = "https://api.redgifs.com/v2/auth/temporary";
             return HttpUtil.getJsonObject(client, gson, url);
         }
 
