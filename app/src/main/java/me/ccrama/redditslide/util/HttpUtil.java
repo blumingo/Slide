@@ -123,4 +123,11 @@ public class HttpUtil {
             final String apiUrl) {
         return getJsonObject(client, gson, apiUrl, null);
     }
+
+    public static JsonObject getJsonObjectWithToken(final OkHttpClient client, final Gson gson,
+                                           final String apiUrl, String token) {
+        final Map<String, String> headersMap  = new HashMap<>();
+        headersMap.put("Authorization", "Bearer "+ token);
+        return getJsonObject(client, gson, apiUrl, headersMap);
+    }
 }
